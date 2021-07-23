@@ -18,7 +18,12 @@ async function waitForPipeline(pipelineName: string, pipelineExecutionId: string
   CLIENT
     .send(command)
     .then((data) => {
-      switch (data.pipelineExecution.status) {
+      if (data.pipelineExecution === undefined || data.pipelineExecution.status === undefined) {
+        core.error('No Status for Pipeline');
+        return false;
+      }
+      const status = data.pipelineExecution.status;
+      switch (status) {
         case PipelineExecutionStatus.InProgress:
           core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`)
           return waitForPipeline(pipelineName, pipelineExecutionId);
@@ -40,6 +45,7 @@ async function waitForPipeline(pipelineName: string, pipelineExecutionId: string
           core.info(`Pipeline '${pipelineName}' succeeded.`)
           return true;
       }
+      return false;
     })
     .catch((error) => {
       throw new Error(`An error occured while getting the Status of pipeline '${pipelineName}' exucution: '${pipelineExecutionId}'.\n ${error}`);
@@ -59,7 +65,13 @@ export async function run() {
   CLIENT
     .send(command)
     .then((data) => {
+      if (data.pipelineExecutionId === undefined) {
+        core.error('No Execution ID');
+        return false;
+      }
+
       executionId = data.pipelineExecutionId;
+      return true;
     }).catch((error) => {
       core.error(`An error occured while starting Codepipeline '${pipelineName}': '${error}'`);
     });
