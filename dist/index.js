@@ -90,4 +90,5 @@ async function run() {
     }
 }
 exports.run = run;
+run().catch(core.setFailed);
 //# sourceMappingURL=index.js.map
