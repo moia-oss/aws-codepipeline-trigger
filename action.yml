@@ -8,6 +8,6 @@ inputs:
     description: 'Wait for the CodePipeline to finish and exit with same result as the CodePipeline'
     required: false
     default: false
-  runs:
-    using: 'node12'
-    main: 'dist/index.js'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
