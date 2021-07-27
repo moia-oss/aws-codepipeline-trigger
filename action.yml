@@ -1,7 +1,7 @@
 name: 'aws-codepipeline-trigger'
 description: 'Trigger an AWS CodePipeline from GitHub Actions'
 inputs:
-  pipeline-name:
+  pipeline:
     description: 'The name of the CodePipeline'
     required: true
   wait:

@@ -64,7 +64,7 @@ async function waitForPipeline(pipelineName, pipelineExecutionId) {
     }
 }
 async function run() {
-    const pipelineName = core.getInput('pipeline-name', { required: true });
+    const pipelineName = core.getInput('pipeline', { required: true });
     const wait = core.getBooleanInput('wait', { required: false });
     const command = new client_codepipeline_1.StartPipelineExecutionCommand({ name: pipelineName });
     try {

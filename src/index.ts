@@ -52,7 +52,7 @@ async function waitForPipeline(pipelineName: string, pipelineExecutionId: string
 }
 
 export async function run() {
-  const pipelineName: string = core.getInput('pipeline-name', { required: true });
+  const pipelineName: string = core.getInput('pipeline', { required: true });
   const wait: boolean = core.getBooleanInput('wait', { required: false });
 
   const command = new StartPipelineExecutionCommand({ name: pipelineName });
