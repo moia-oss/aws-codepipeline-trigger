@@ -29,10 +29,9 @@ function sleep(s) {
 async function waitForPipeline(pipelineName, pipelineExecutionId) {
     await sleep(10);
     const command = new client_codepipeline_1.GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
-    CLIENT
-        .send(command)
-        .then((data) => {
-        if (data.pipelineExecution === undefined || data.pipelineExecution.status === undefined) {
+    try {
+        const data = await CLIENT.send(command);
+        if (data.pipelineExecution === undefined || !data.pipelineExecution.status) {
             core.error('No Status for Pipeline');
             return false;
         }
@@ -59,34 +58,32 @@ async function waitForPipeline(pipelineName, pipelineExecutionId) {
                 return true;
         }
         return false;
-    })
-        .catch((error) => {
-        throw new Error(`An error occured while getting the Status of pipeline '${pipelineName}' exucution: '${pipelineExecutionId}'.\n ${error}`);
-    });
-    return false;
+    }
+    catch (error) {
+        throw new Error(`An error occured while getting the status of pipeline '${pipelineName}' exucution: '${pipelineExecutionId}'.\n ${error}`);
+    }
 }
 async function run() {
     const pipelineName = core.getInput('pipeline-name', { required: true });
     const wait = core.getBooleanInput('wait', { required: false });
     const command = new client_codepipeline_1.StartPipelineExecutionCommand({ name: pipelineName });
-    var executionId = '';
-    CLIENT
-        .send(command)
-        .then((data) => {
-        if (data.pipelineExecutionId === undefined) {
+    try {
+        const data = await CLIENT.send(command);
+        if (!data.pipelineExecutionId) {
             core.error('No Execution ID');
-            return false;
+            throw new Error('No Execution ID');
         }
-        executionId = data.pipelineExecutionId;
-        return true;
-    }).catch((error) => {
+        if (wait) {
+            const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId);
+            if (!executionResult) {
+                core.error('Execution was unsucessful.');
+                throw new Error('Execution was unsucessful.');
+            }
+        }
+    }
+    catch (error) {
         core.error(`An error occured while starting Codepipeline '${pipelineName}': '${error}'`);
-    });
-    if (wait) {
-        const executionResult = await waitForPipeline(pipelineName, executionId);
-        if (!executionResult) {
-            core.error(`Execution was unsucessful.`);
-        }
+        throw new Error(`An error occured while starting Codepipeline '${pipelineName}': '${error}'`);
     }
 }
 exports.run = run;
