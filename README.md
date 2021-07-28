@@ -25,14 +25,18 @@ user or role you login to needs the following permissions:
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": ["codepipeline:StartPipelineExecution", "codepipeline:GetPipelineExecution"],
+      "Action": [
+        "codepipeline:StartPipelineExecution",
+        "codepipeline:GetPipelineExecution",
+        "codepipeline:ListPipelineExecutions"
+      ],
       "Resource": ["arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${PipelineName}"]
     }
   ]
 }
 ```
 
-`codepipeline:GetPipelineExecution` is only necessary, if you set `wait: true`,
+`codepipeline:GetPipelineExecution` and `codepipeline:ListPipelineExecutions` are only necessary, if you set `wait: true`,
 otherwise the GitHub Action Workflow continues without checking the pipeline
 state.
 
