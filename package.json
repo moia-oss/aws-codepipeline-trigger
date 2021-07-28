@@ -17,7 +17,7 @@
     "@actions/core": "^1.4.0",
     "@aws-sdk/client-codepipeline": "^3.23.0",
     "@moia-oss/eslint-prettier-typescript-config": "^0.9.13",
-    "@types/node": "^16.4.1",
+    "@types/node": "^16.4.5",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.4",
     "eslint": "^7.31.0",
