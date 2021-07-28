@@ -23,6 +23,18 @@ const core = __importStar(require("@actions/core"));
 const client_codepipeline_1 = require("@aws-sdk/client-codepipeline");
 const CLIENT = new client_codepipeline_1.CodePipelineClient({});
 const sleep = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
+const getNewestExecutionId = async (pipelineName) => {
+    const command = new client_codepipeline_1.ListPipelineExecutionsCommand({ pipelineName, maxResults: 1 });
+    const data = await CLIENT.send(command);
+    if (data.pipelineExecutionSummaries && data.pipelineExecutionSummaries.length > 0) {
+        const executionId = data.pipelineExecutionSummaries[0].pipelineExecutionId;
+        if (executionId) {
+            return executionId;
+        }
+        throw new Error(`Newest pipeline execution of '${pipelineName}' has no ID`);
+    }
+    throw new Error('No Pipeline executions found');
+};
 const waitForPipeline = async (pipelineName, pipelineExecutionId) => {
     await sleep(10);
     const command = new client_codepipeline_1.GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
@@ -37,24 +49,27 @@ const waitForPipeline = async (pipelineName, pipelineExecutionId) => {
             case client_codepipeline_1.PipelineExecutionStatus.InProgress:
                 core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
                 return await waitForPipeline(pipelineName, pipelineExecutionId);
-            case client_codepipeline_1.PipelineExecutionStatus.Failed:
-                core.info(`Pipeline '${pipelineName}' failed.`);
-                return false;
-            case client_codepipeline_1.PipelineExecutionStatus.Stopping || client_codepipeline_1.PipelineExecutionStatus.Stopped:
-                core.info(`Pipeline '${pipelineName}' stopped.`);
-                return false;
-            case client_codepipeline_1.PipelineExecutionStatus.Superseded:
-                core.info(`Pipeline '${pipelineName}' was superseded.`);
-                return false;
-            case client_codepipeline_1.PipelineExecutionStatus.Cancelled:
+            case client_codepipeline_1.PipelineExecutionStatus.Cancelled: {
                 core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);
-                // TODO: To implement
-                return false;
+                const newExecutionId = await getNewestExecutionId(pipelineName);
+                core.info(`Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}`);
+                return await waitForPipeline(pipelineName, newExecutionId);
+            }
             case client_codepipeline_1.PipelineExecutionStatus.Succeeded:
                 core.info(`Pipeline '${pipelineName}' succeeded.`);
                 return true;
+            case client_codepipeline_1.PipelineExecutionStatus.Failed:
+                core.error(`Pipeline '${pipelineName}' failed.`);
+                return false;
+            case client_codepipeline_1.PipelineExecutionStatus.Stopping || client_codepipeline_1.PipelineExecutionStatus.Stopped:
+                core.error(`Pipeline '${pipelineName}' stopped.`);
+                return false;
+            case client_codepipeline_1.PipelineExecutionStatus.Superseded:
+                core.error(`Pipeline '${pipelineName}' was superseded.`);
+                return false;
             default:
-                throw new Error(`Unexpected status: ${status} given.`);
+                core.error(`Unexpected status: ${status} given.`);
+                return false;
         }
     }
     catch (error) {
@@ -74,12 +89,13 @@ const run = async () => {
         if (wait) {
             const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId);
             if (!executionResult) {
-                throw new Error('Execution was unsucessful.');
+                core.setFailed('Execution was unsucessful.');
+                return;
             }
         }
     }
     catch (error) {
-        core.error(`An error occured while starting Codepipeline '${pipelineName}'`);
+        core.setFailed(`An error occured while starting Codepipeline '${pipelineName}'`);
         throw error;
     }
 };
