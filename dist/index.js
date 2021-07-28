@@ -52,7 +52,7 @@ const waitForPipeline = async (pipelineName, pipelineExecutionId) => {
             case client_codepipeline_1.PipelineExecutionStatus.Cancelled: {
                 core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);
                 const newExecutionId = await getNewestExecutionId(pipelineName);
-                core.info(`Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}`);
+                core.info(`Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}'`);
                 return await waitForPipeline(pipelineName, newExecutionId);
             }
             case client_codepipeline_1.PipelineExecutionStatus.Succeeded:
@@ -89,13 +89,12 @@ const run = async () => {
         if (wait) {
             const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId);
             if (!executionResult) {
-                core.setFailed('Execution was unsucessful.');
-                return;
+                throw new Error('Execution was unsucessful.');
             }
         }
     }
     catch (error) {
-        core.setFailed(`An error occured while starting Codepipeline '${pipelineName}'`);
+        core.error(`An error occured while starting Codepipeline '${pipelineName}'`);
         throw error;
     }
 };

@@ -42,7 +42,7 @@ const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string
       case PipelineExecutionStatus.Cancelled: {
         core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);
         const newExecutionId = await getNewestExecutionId(pipelineName);
-        core.info(`Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}`);
+        core.info(`Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}'`);
         return await waitForPipeline(pipelineName, newExecutionId);
       }
       case PipelineExecutionStatus.Succeeded:

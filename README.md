@@ -51,7 +51,7 @@ The GitHub Action could look like this:
     aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
     aws-region: eu-central-1
 - name: Start CodePipeline
-  uses: moia-oss/aws-codepipeline-trigger@v0.1.0
+  uses: moia-oss/aws-codepipeline-trigger@v0.2.1
   with:
     pipeline: my-pipeline
     wait: true # optional (default: false)
@@ -84,7 +84,7 @@ jobs:
           aws-session-token: ${{ secrets.INT_AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Start CodePipeline
-        uses: moia-oss/aws-codepipeline-trigger@v0.1.0
+        uses: moia-oss/aws-codepipeline-trigger@v0.2.1
         with:
           pipeline: my-pipeline-int
           wait: true
@@ -103,7 +103,7 @@ jobs:
           aws-session-token: ${{ secrets.PRD_AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Start CodePipeline
-        uses: moia-oss/aws-codepipeline-trigger@v0.1.0
+        uses: moia-oss/aws-codepipeline-trigger@v0.2.1
         with:
           pipeline: my-pipeline-prd
           wait: true
