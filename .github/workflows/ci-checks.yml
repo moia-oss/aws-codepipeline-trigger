@@ -1,0 +1,23 @@
+name: lint, test and build
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use node.js 12.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - name: NPM Install
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build

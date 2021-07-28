@@ -1,7 +1,7 @@
 # AWS CodePipeline Trigger
 
-***Trigger AWS CodePipeline from GitHub Actions and have the possibility to
-wait for the execution result***
+**_Trigger AWS CodePipeline from GitHub Actions and have the possibility to
+wait for the execution result_**
 
 ## Intro
 
@@ -21,25 +21,20 @@ user or role you login to needs the following permissions:
 
 ```json
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "codepipeline:StartPipelineExecution",
-                "codepipeline:GetPipelineExecution" 
-            ],
-            "Resource": [
-                "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${PipelineName}"
-            ]
-        }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["codepipeline:StartPipelineExecution", "codepipeline:GetPipelineExecution"],
+      "Resource": ["arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${PipelineName}"]
+    }
+  ]
 }
 ```
 
 `codepipeline:GetPipelineExecution` is only necessary, if you set `wait: true`,
 otherwise the GitHub Action Workflow continues without checking the pipeline
-state. 
+state.
 
 The GitHub Action could look like this:
 
@@ -58,7 +53,7 @@ The GitHub Action could look like this:
     wait: true # optional (default: false)
 ```
 
-How you provide the secrets is up to you. Check the 
+How you provide the secrets is up to you. Check the
 [configure-aws-credentials](https://github.com/marketplace/actions/configure-aws-credentials-action-for-github-actions)
 docs for the different possibilities.
 

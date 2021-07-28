@@ -19,14 +19,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.run = void 0;
 const core = __importStar(require("@actions/core"));
 const client_codepipeline_1 = require("@aws-sdk/client-codepipeline");
 const CLIENT = new client_codepipeline_1.CodePipelineClient({});
-function sleep(s) {
-    return new Promise(resolve => setTimeout(resolve, s * 1000));
-}
-async function waitForPipeline(pipelineName, pipelineExecutionId) {
+const sleep = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
+const waitForPipeline = async (pipelineName, pipelineExecutionId) => {
     await sleep(10);
     const command = new client_codepipeline_1.GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
     try {
@@ -35,11 +32,11 @@ async function waitForPipeline(pipelineName, pipelineExecutionId) {
             core.error('No Status for Pipeline');
             return false;
         }
-        const status = data.pipelineExecution.status;
+        const { status } = data.pipelineExecution;
         switch (status) {
             case client_codepipeline_1.PipelineExecutionStatus.InProgress:
                 core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
-                return waitForPipeline(pipelineName, pipelineExecutionId);
+                return await waitForPipeline(pipelineName, pipelineExecutionId);
             case client_codepipeline_1.PipelineExecutionStatus.Failed:
                 core.info(`Pipeline '${pipelineName}' failed.`);
                 return false;
@@ -51,41 +48,40 @@ async function waitForPipeline(pipelineName, pipelineExecutionId) {
                 return false;
             case client_codepipeline_1.PipelineExecutionStatus.Cancelled:
                 core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);
-                //TODO: To implement
+                // TODO: To implement
                 return false;
             case client_codepipeline_1.PipelineExecutionStatus.Succeeded:
                 core.info(`Pipeline '${pipelineName}' succeeded.`);
                 return true;
+            default:
+                throw new Error(`Unexpected status: ${status} given.`);
         }
-        return false;
     }
     catch (error) {
-        throw new Error(`An error occured while getting the status of pipeline '${pipelineName}' exucution: '${pipelineExecutionId}'.\n ${error}`);
+        core.error(`An error occured while getting the status of pipeline '${pipelineName}' exucution: '${pipelineExecutionId}'.`);
+        throw error;
     }
-}
-async function run() {
+};
+const run = async () => {
     const pipelineName = core.getInput('pipeline', { required: true });
     const wait = core.getBooleanInput('wait', { required: false });
     const command = new client_codepipeline_1.StartPipelineExecutionCommand({ name: pipelineName });
     try {
         const data = await CLIENT.send(command);
         if (!data.pipelineExecutionId) {
-            core.error('No Execution ID');
             throw new Error('No Execution ID');
         }
         if (wait) {
             const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId);
             if (!executionResult) {
-                core.error('Execution was unsucessful.');
                 throw new Error('Execution was unsucessful.');
             }
         }
     }
     catch (error) {
-        core.error(`An error occured while starting Codepipeline '${pipelineName}': '${error}'`);
-        throw new Error(`An error occured while starting Codepipeline '${pipelineName}': '${error}'`);
+        core.error(`An error occured while starting Codepipeline '${pipelineName}'`);
+        throw error;
     }
-}
-exports.run = run;
+};
 run().catch(core.setFailed);
 //# sourceMappingURL=index.js.map
