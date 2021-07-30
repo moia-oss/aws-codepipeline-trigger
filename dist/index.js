@@ -65,8 +65,8 @@ const waitForPipeline = async (pipelineName, pipelineExecutionId) => {
                 core.error(`Pipeline '${pipelineName}' stopped.`);
                 return false;
             case client_codepipeline_1.PipelineExecutionStatus.Superseded:
-                core.error(`Pipeline '${pipelineName}' was superseded.`);
-                return false;
+                core.warning(`Pipeline '${pipelineName}' was superseded. Skipping rest of the execution.`);
+                return true;
             default:
                 core.error(`Unexpected status: ${status} given.`);
                 return false;
