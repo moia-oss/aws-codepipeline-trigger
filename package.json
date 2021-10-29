@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.6.0",
-    "@aws-sdk/client-codepipeline": "^3.34.0",
+    "@aws-sdk/client-codepipeline": "^3.39.0",
     "@moia-oss/eslint-prettier-typescript-config": "^0.9.16",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
