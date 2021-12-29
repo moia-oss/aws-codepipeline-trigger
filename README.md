@@ -31,14 +31,27 @@ user or role you login to needs the following permissions:
         "codepipeline:ListPipelineExecutions"
       ],
       "Resource": ["arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${PipelineName}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codebuild:ListBuildBatchesForProject",
+      ],
+      "Resource": ["arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${CodeBuildProjectName}"]
     }
   ]
 }
 ```
 
-`codepipeline:GetPipelineExecution` and `codepipeline:ListPipelineExecutions` are only necessary, if you set `wait: true`,
-otherwise the GitHub Action Workflow continues without checking the pipeline
-state.
+`codepipeline:GetPipelineExecution` and `codepipeline:ListPipelineExecutions`
+are only necessary, if you set `wait: true`, otherwise the GitHub Action
+Workflow continues without checking the pipeline state.
+
+Furthermore, if you have set `wait: true` then aws-codepipeline-trigger is able to forward the outputs of the CodeBuild Actions inside of the CodePipeline. To make use of this feature, the following permissions must be set as well:
+
+- `codebuild:ListBuildBatchesForProject`: for all the CodeBuild Projects that are part of the pipeline, which is triggered
+
+
 
 The GitHub Action could look like this:
 

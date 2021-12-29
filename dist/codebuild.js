@@ -87,7 +87,7 @@ const getInProgressBuildBatchId = async (codebuildProjectName) => {
     }
     catch (error) {
         core.error(`An error occured while getting BuildBatchesForProject ${codebuildProjectName}`);
-        throw error;
+        return undefined;
     }
 };
 exports.getInProgressBuildBatchId = getInProgressBuildBatchId;
