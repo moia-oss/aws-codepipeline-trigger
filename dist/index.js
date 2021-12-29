@@ -21,6 +21,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const client_codepipeline_1 = require("@aws-sdk/client-codepipeline");
+const codebuild = __importStar(require("./codebuild"));
 const CLIENT = new client_codepipeline_1.CodePipelineClient({});
 const sleep = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
 const getNewestExecutionId = async (pipelineName) => {
@@ -87,6 +88,16 @@ const run = async () => {
             throw new Error('No Execution ID');
         }
         if (wait) {
+            const codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
+            if (codebuilds !== undefined) {
+                core.info(`Found Codebuild projects: `);
+                for (let codebuild of codebuilds) {
+                    core.info(`CodeBuild ProjectName: ${codebuild}`);
+                }
+            }
+            else {
+                core.info('Didn\'t find any CodeBuild Projects');
+            }
             const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId);
             if (!executionResult) {
                 throw new Error('Execution was unsucessful.');

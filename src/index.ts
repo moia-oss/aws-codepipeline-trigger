@@ -7,6 +7,8 @@ import {
   ListPipelineExecutionsCommand,
 } from '@aws-sdk/client-codepipeline';
 
+import * as codebuild from './codebuild';
+
 const CLIENT = new CodePipelineClient({});
 
 const sleep = (s: number) => new Promise((resolve) => setTimeout(resolve, s * 1000));
@@ -81,6 +83,15 @@ const run = async (): Promise<void> => {
       throw new Error('No Execution ID');
     }
     if (wait) {
+      const codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
+      if (codebuilds !== undefined) {
+        core.info(`Found Codebuild projects: `)
+        for (let codebuild of codebuilds) {
+          core.info(`CodeBuild ProjectName: ${codebuild}`);
+        }
+      } else {
+        core.info('Didn\'t find any CodeBuild Projects');
+      }
       const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId);
       if (!executionResult) {
         throw new Error('Execution was unsucessful.');
