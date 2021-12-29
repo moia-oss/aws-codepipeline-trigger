@@ -19,9 +19,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCodebuildProjectsForPipeline = void 0;
+exports.getInProgressBuildBatchId = exports.getCodebuildProjectsForPipeline = void 0;
 const core = __importStar(require("@actions/core"));
 const client_codepipeline_1 = require("@aws-sdk/client-codepipeline");
+const client_codebuild_1 = require("@aws-sdk/client-codebuild");
+const CLIENT = new client_codebuild_1.CodeBuildClient({});
 const getCodebuildProjectsForPipeline = async (client, codePipelineName) => {
     var _a, _b;
     const command = new client_codepipeline_1.GetPipelineCommand({ name: codePipelineName });
@@ -32,12 +34,12 @@ const getCodebuildProjectsForPipeline = async (client, codePipelineName) => {
         }
         else {
             core.warning('Couldn\'t get pipeline information. You are probably missing permissions.');
-            return undefined;
+            return [];
         }
     }
     catch (error) {
         core.error(`An error occured while getting pipeline information for '${codePipelineName}'`);
-        return undefined;
+        return [];
     }
 };
 exports.getCodebuildProjectsForPipeline = getCodebuildProjectsForPipeline;
@@ -60,4 +62,33 @@ const getCodeBuildsFromActions = (actions) => {
         return '';
     }).filter(x => x !== '');
 };
+const getInProgressBuildBatchId = async (codebuildProjectName) => {
+    const command = new client_codebuild_1.ListBuildBatchesForProjectCommand({
+        filter: {
+            status: client_codebuild_1.StatusType.IN_PROGRESS,
+        },
+        projectName: codebuildProjectName,
+        sortOrder: client_codebuild_1.SortOrderType.DESCENDING,
+    });
+    try {
+        const output = await CLIENT.send(command);
+        if (output.ids === undefined) {
+            core.info(`CodeBuild Project ${codebuildProjectName} is currently not in progress`);
+            return undefined;
+        }
+        else if (output.ids.length > 1 || output.nextToken !== undefined) {
+            core.info(`Too many concurrend BuildBatches in progress. Don't know which one to follow.`);
+            return undefined;
+        }
+        else {
+            core.info(`CodeBuild Project ${codebuildProjectName} is currently in progress`);
+            return output.ids[0];
+        }
+    }
+    catch (error) {
+        core.error(`An error occured while getting BuildBatchesForProject ${codebuildProjectName}`);
+        throw error;
+    }
+};
+exports.getInProgressBuildBatchId = getInProgressBuildBatchId;
 //# sourceMappingURL=codebuild.js.map

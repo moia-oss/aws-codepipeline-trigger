@@ -26,7 +26,7 @@ const getNewestExecutionId = async (pipelineName: string): Promise<string> => {
   throw new Error('No Pipeline executions found');
 };
 
-const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string): Promise<boolean> => {
+const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string, codebuilds: string[]): Promise<boolean> => {
   await sleep(10);
   const command = new GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
   try {
@@ -40,12 +40,13 @@ const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string
     switch (status) {
       case PipelineExecutionStatus.InProgress:
         core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
-        return await waitForPipeline(pipelineName, pipelineExecutionId);
+        codebuilds.forEach(codebuildProjectName => codebuild.getInProgressBuildBatchId(codebuildProjectName));
+        return await waitForPipeline(pipelineName, pipelineExecutionId, codebuilds);
       case PipelineExecutionStatus.Cancelled: {
         core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);
         const newExecutionId = await getNewestExecutionId(pipelineName);
         core.info(`Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}'`);
-        return await waitForPipeline(pipelineName, newExecutionId);
+        return await waitForPipeline(pipelineName, newExecutionId, codebuilds);
       }
       case PipelineExecutionStatus.Succeeded:
         core.info(`Pipeline '${pipelineName}' succeeded.`);
@@ -84,15 +85,7 @@ const run = async (): Promise<void> => {
     }
     if (wait) {
       const codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
-      if (codebuilds !== undefined) {
-        core.info(`Found Codebuild projects: `)
-        for (let codebuild of codebuilds) {
-          core.info(`CodeBuild ProjectName: ${codebuild}`);
-        }
-      } else {
-        core.info('Didn\'t find any CodeBuild Projects');
-      }
-      const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId);
+      const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId, codebuilds);
       if (!executionResult) {
         throw new Error('Execution was unsucessful.');
       }
