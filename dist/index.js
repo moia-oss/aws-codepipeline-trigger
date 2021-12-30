@@ -22,8 +22,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const client_codepipeline_1 = require("@aws-sdk/client-codepipeline");
 const codebuild = __importStar(require("./codebuild"));
+const util_1 = require("./util");
 const CLIENT = new client_codepipeline_1.CodePipelineClient({});
-const sleep = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
 const getNewestExecutionId = async (pipelineName) => {
     const command = new client_codepipeline_1.ListPipelineExecutionsCommand({ pipelineName, maxResults: 1 });
     const data = await CLIENT.send(command);
@@ -37,7 +37,7 @@ const getNewestExecutionId = async (pipelineName) => {
     throw new Error('No Pipeline executions found');
 };
 const waitForPipeline = async (pipelineName, pipelineExecutionId, codebuilds) => {
-    await sleep(10);
+    await (0, util_1.sleep)(10);
     const command = new client_codepipeline_1.GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
     try {
         const data = await CLIENT.send(command);
@@ -48,8 +48,11 @@ const waitForPipeline = async (pipelineName, pipelineExecutionId, codebuilds) =>
         const { status } = data.pipelineExecution;
         switch (status) {
             case client_codepipeline_1.PipelineExecutionStatus.InProgress:
+                const projectToBuildBatchId = await codebuild.getInProgressProjectToBatchIds(codebuilds);
+                if (projectToBuildBatchId.length > 0) {
+                    await codebuild.forwardLogEventsFromCodebuild(projectToBuildBatchId[0]);
+                }
                 core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
-                codebuilds.forEach(codebuildProjectName => codebuild.getInProgressBuildBatchId(codebuildProjectName));
                 return await waitForPipeline(pipelineName, pipelineExecutionId, codebuilds);
             case client_codepipeline_1.PipelineExecutionStatus.Cancelled: {
                 core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);

@@ -8,10 +8,10 @@ import {
 } from '@aws-sdk/client-codepipeline';
 
 import * as codebuild from './codebuild';
+import { sleep } from './util';
 
 const CLIENT = new CodePipelineClient({});
 
-const sleep = (s: number) => new Promise((resolve) => setTimeout(resolve, s * 1000));
 
 const getNewestExecutionId = async (pipelineName: string): Promise<string> => {
   const command = new ListPipelineExecutionsCommand({ pipelineName, maxResults: 1 });
@@ -26,6 +26,7 @@ const getNewestExecutionId = async (pipelineName: string): Promise<string> => {
   throw new Error('No Pipeline executions found');
 };
 
+
 const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string, codebuilds: string[]): Promise<boolean> => {
   await sleep(10);
   const command = new GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
@@ -39,8 +40,11 @@ const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string
     const { status } = data.pipelineExecution;
     switch (status) {
       case PipelineExecutionStatus.InProgress:
+        const projectToBuildBatchId = await codebuild.getInProgressProjectToBatchIds(codebuilds);
+        if (projectToBuildBatchId.length > 0) {
+          await codebuild.forwardLogEventsFromCodebuild(projectToBuildBatchId[0]);
+        }
         core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
-        codebuilds.forEach(codebuildProjectName => codebuild.getInProgressBuildBatchId(codebuildProjectName));
         return await waitForPipeline(pipelineName, pipelineExecutionId, codebuilds);
       case PipelineExecutionStatus.Cancelled: {
         core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);

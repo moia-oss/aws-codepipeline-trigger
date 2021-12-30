@@ -35,9 +35,17 @@ user or role you login to needs the following permissions:
     {
       "Effect": "Allow",
       "Action": [
-        "codebuild:ListBuildBatchesForProject",
+        "codebuild:ListBuildsForProject",
+        "codebuild:BatchGetBuilds",
       ],
       "Resource": ["arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${CodeBuildProjectName}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:GetLogEvents",
+      ],
+      "Resource": ["arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${CodeBuildProjectName}:*"
     }
   ]
 }
@@ -49,7 +57,11 @@ Workflow continues without checking the pipeline state.
 
 Furthermore, if you have set `wait: true` then aws-codepipeline-trigger is able to forward the outputs of the CodeBuild Actions inside of the CodePipeline. To make use of this feature, the following permissions must be set as well:
 
-- `codebuild:ListBuildBatchesForProject`: for all the CodeBuild Projects that are part of the pipeline, which is triggered
+- `codebuild:ListBuildBatchesForProject` 
+- `codebuild:BatchGetBuilds`
+- `logs:GetLogEvents`
+
+for all the CodeBuild Projects that are part of the pipeline, which is triggered
 
 
 
