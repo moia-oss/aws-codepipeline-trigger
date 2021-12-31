@@ -6,11 +6,7 @@ import {
   StatusType,
 } from '@aws-sdk/client-codebuild';
 import { GetPipelineCommand } from '@aws-sdk/client-codepipeline';
-import type {
-  ActionDeclaration,
-  CodePipelineClient,
-  StageDeclaration,
-} from '@aws-sdk/client-codepipeline'
+import type { ActionDeclaration, CodePipelineClient, StageDeclaration } from '@aws-sdk/client-codepipeline';
 
 import { CloudWatchLogsForwarder } from './cloudwatch-logs-forwarder';
 
@@ -19,14 +15,16 @@ const CLIENT = new CodeBuildClient({});
 type ProjectToBuildBatchId = [string, string];
 
 const getCodeBuildsFromActions = (actions: ActionDeclaration[]): string[] =>
-  actions.map((action) => {
-    if (action.actionTypeId?.category === 'Build' && action.actionTypeId?.provider === 'CodeBuild') {
-      if (action.configuration !== undefined) {
-        return action.configuration.ProjectName;
+  actions
+    .map((action) => {
+      if (action.actionTypeId?.category === 'Build' && action.actionTypeId?.provider === 'CodeBuild') {
+        if (action.configuration !== undefined) {
+          return action.configuration.ProjectName;
+        }
       }
-    }
-    return '';
-  }).filter((x) => x !== '');
+      return '';
+    })
+    .filter((x) => x !== '');
 
 const getCodeBuildsFromStages = (stages: StageDeclaration[]): string[] =>
   stages.flatMap((stage) => {
@@ -100,7 +98,6 @@ export const getInProgressBuildId = async (codebuildProjectName: string): Promis
     throw error;
   }
 };
-
 
 export const forwardLogEventsFromCodebuild = async ([projectName, buildId]: ProjectToBuildBatchId) => {
   const command = new BatchGetBuildsCommand({ ids: [buildId] });

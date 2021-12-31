@@ -40,9 +40,7 @@ export class CloudWatchLogsForwarder {
       const getBuildOutput = await CODEBUILD_CLIENT.send(batchGetBuildCommand);
       const getLogEventsOutput = await CLIENT.send(getLogEventsCommand);
       if (!getBuildOutput.builds) {
-        core.error(
-          `Build with id: ${buildId} doesn't exist anymore.`,
-        );
+        core.error(`Build with id: ${buildId} doesn't exist anymore.`);
 
         return true;
       }
@@ -80,5 +78,5 @@ export class CloudWatchLogsForwarder {
       );
       return true;
     }
-  }
-};
+  };
+}
