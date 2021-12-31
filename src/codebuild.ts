@@ -14,7 +14,7 @@ const CLIENT = new CodeBuildClient({});
 
 type ProjectToBuildBatchId = [string, string];
 
-const getCodeBuildsFromActions = (actions: ActionDeclaration[]): string[] =>
+export const getCodeBuildsFromActions = (actions: ActionDeclaration[]): string[] =>
   actions
     .map((action) => {
       if (action.actionTypeId?.category === 'Build' && action.actionTypeId?.provider === 'CodeBuild') {
@@ -26,7 +26,7 @@ const getCodeBuildsFromActions = (actions: ActionDeclaration[]): string[] =>
     })
     .filter((x) => x !== '');
 
-const getCodeBuildsFromStages = (stages: StageDeclaration[]): string[] =>
+export const getCodeBuildsFromStages = (stages: StageDeclaration[]): string[] =>
   stages.flatMap((stage) => {
     if (stage.actions !== undefined) {
       return getCodeBuildsFromActions(stage.actions);
@@ -67,7 +67,9 @@ const isBuildIdInProgress = async (buildId: string): Promise<boolean> => {
     return output.builds[0].buildStatus === StatusType.IN_PROGRESS;
   } catch (error) {
     const err = error as Error;
-    core.warning(`Couldn't get build with id '${buildId}'. ${err.message}`);
+    core.warning(
+      `Couldn't get build with id '${buildId}', consider adding the codebuild:BatchGetBuilds permission. ${err.message}`,
+    );
   }
   return false;
 };
@@ -95,7 +97,8 @@ export const getInProgressBuildId = async (codebuildProjectName: string): Promis
     core.warning(
       `An error occured while getting BuildBatchesForProject '${codebuildProjectName}'.\n Consider adding 'codebuild:ListBuildsForProject' permission for that project. ${err.message}`,
     );
-    throw error;
+
+    return undefined;
   }
 };
 
@@ -117,14 +120,17 @@ export const forwardLogEventsFromCodebuild = async ([projectName, buildId]: Proj
       }
     }
   } catch (error) {
-    core.warning(`Could not get build for id ${buildId} in project ${projectName}.`);
+    const err = error as Error;
+    core.warning(
+      `Could not get build with id '${buildId}', consider adding the codebuild:BatchGetBuilds permission. ${err.message}.`,
+    );
   }
 };
 
 /*
  * Used in filter methods to get out just the ProjectToBuildBatchIds which have a build id set
  */
-const isProjectToBuildBatchId = (x: (string | undefined)[]): x is ProjectToBuildBatchId => !!x[1];
+export const isProjectToBuildBatchId = (x: (string | undefined)[]): x is ProjectToBuildBatchId => !!x[1];
 
 /*
  * Get the BuildBatchIds of the passed CodeBuild Projects.

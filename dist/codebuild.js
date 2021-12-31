@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getInProgressProjectToBatchIds = exports.forwardLogEventsFromCodebuild = exports.getInProgressBuildId = exports.getCodebuildProjectsForPipeline = void 0;
+exports.getInProgressProjectToBatchIds = exports.isProjectToBuildBatchId = exports.forwardLogEventsFromCodebuild = exports.getInProgressBuildId = exports.getCodebuildProjectsForPipeline = exports.getCodeBuildsFromStages = exports.getCodeBuildsFromActions = void 0;
 const core = __importStar(require("@actions/core"));
 const client_codebuild_1 = require("@aws-sdk/client-codebuild");
 const client_codepipeline_1 = require("@aws-sdk/client-codepipeline");
@@ -36,12 +36,14 @@ const getCodeBuildsFromActions = (actions) => actions
     return '';
 })
     .filter((x) => x !== '');
+exports.getCodeBuildsFromActions = getCodeBuildsFromActions;
 const getCodeBuildsFromStages = (stages) => stages.flatMap((stage) => {
     if (stage.actions !== undefined) {
-        return getCodeBuildsFromActions(stage.actions);
+        return (0, exports.getCodeBuildsFromActions)(stage.actions);
     }
     return [];
 });
+exports.getCodeBuildsFromStages = getCodeBuildsFromStages;
 /*
  * Searches through all stages of a Codepipeline and returns the included CodeBuild Project Names
  */
@@ -51,7 +53,7 @@ const getCodebuildProjectsForPipeline = async (client, codePipelineName) => {
     try {
         const output = await client.send(command);
         if (((_a = output.pipeline) === null || _a === void 0 ? void 0 : _a.stages) !== undefined) {
-            return getCodeBuildsFromStages((_b = output.pipeline) === null || _b === void 0 ? void 0 : _b.stages);
+            return (0, exports.getCodeBuildsFromStages)((_b = output.pipeline) === null || _b === void 0 ? void 0 : _b.stages);
         }
         core.warning("Couldn't get pipeline information. You are probably missing permissions.");
         return [];
@@ -74,7 +76,7 @@ const isBuildIdInProgress = async (buildId) => {
     }
     catch (error) {
         const err = error;
-        core.warning(`Couldn't get build with id '${buildId}'. ${err.message}`);
+        core.warning(`Couldn't get build with id '${buildId}', consider adding the codebuild:BatchGetBuilds permission. ${err.message}`);
     }
     return false;
 };
@@ -99,7 +101,7 @@ const getInProgressBuildId = async (codebuildProjectName) => {
     catch (error) {
         const err = error;
         core.warning(`An error occured while getting BuildBatchesForProject '${codebuildProjectName}'.\n Consider adding 'codebuild:ListBuildsForProject' permission for that project. ${err.message}`);
-        throw error;
+        return undefined;
     }
 };
 exports.getInProgressBuildId = getInProgressBuildId;
@@ -122,7 +124,8 @@ const forwardLogEventsFromCodebuild = async ([projectName, buildId]) => {
         }
     }
     catch (error) {
-        core.warning(`Could not get build for id ${buildId} in project ${projectName}.`);
+        const err = error;
+        core.warning(`Could not get build with id '${buildId}', consider adding the codebuild:BatchGetBuilds permission. ${err.message}.`);
     }
 };
 exports.forwardLogEventsFromCodebuild = forwardLogEventsFromCodebuild;
@@ -130,12 +133,13 @@ exports.forwardLogEventsFromCodebuild = forwardLogEventsFromCodebuild;
  * Used in filter methods to get out just the ProjectToBuildBatchIds which have a build id set
  */
 const isProjectToBuildBatchId = (x) => !!x[1];
+exports.isProjectToBuildBatchId = isProjectToBuildBatchId;
 /*
  * Get the BuildBatchIds of the passed CodeBuild Projects.
  */
 const getInProgressProjectToBatchIds = async (codebuildProjects) => {
     const projectsToBuildBatches = await Promise.all(codebuildProjects.map(async (codebuildProject) => [codebuildProject, await (0, exports.getInProgressBuildId)(codebuildProject)]));
-    return projectsToBuildBatches.filter(isProjectToBuildBatchId);
+    return projectsToBuildBatches.filter(exports.isProjectToBuildBatchId);
 };
 exports.getInProgressProjectToBatchIds = getInProgressProjectToBatchIds;
 //# sourceMappingURL=codebuild.js.map

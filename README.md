@@ -61,7 +61,9 @@ Furthermore, if you have set `wait: true` then aws-codepipeline-trigger is able 
 - `codebuild:BatchGetBuilds`
 - `logs:GetLogEvents`
 
-for all the CodeBuild Projects that are part of the pipeline, which is triggered
+for all the CodeBuild Projects that are part of the pipeline, which is triggered.
+
+CURRENT RESTRICTIONS: If you have multiple CodeBuilds running in parallel in the same stage aws-codepipeline-trigger picks up the first active CodeBuild and forwards it's output, ignoring everything else until it's completed.
 
 The GitHub Action could look like this:
 

@@ -11,9 +11,9 @@ const CODEBUILD_CLIENT = new CodeBuildClient({});
 const BACKOFF = 2.5;
 
 export class CloudWatchLogsForwarder {
-  private groupName: string;
+  private readonly groupName: string;
 
-  private streamName: string;
+  private readonly streamName: string;
 
   private consecutiveEmptyLogs = 0;
 
