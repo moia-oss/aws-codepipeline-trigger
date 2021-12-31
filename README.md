@@ -57,13 +57,11 @@ Workflow continues without checking the pipeline state.
 
 Furthermore, if you have set `wait: true` then aws-codepipeline-trigger is able to forward the outputs of the CodeBuild Actions inside of the CodePipeline. To make use of this feature, the following permissions must be set as well:
 
-- `codebuild:ListBuildBatchesForProject` 
+- `codebuild:ListBuildBatchesForProject`
 - `codebuild:BatchGetBuilds`
 - `logs:GetLogEvents`
 
 for all the CodeBuild Projects that are part of the pipeline, which is triggered
-
-
 
 The GitHub Action could look like this:
 
