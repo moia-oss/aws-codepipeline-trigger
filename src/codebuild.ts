@@ -106,12 +106,12 @@ export const forwardLogEventsFromCodebuild = async ([projectName, buildId]: Proj
     if (output.builds !== undefined) {
       const [build] = output.builds;
       if (build.logs?.groupName && build.logs?.streamName) {
-        core.info(`**** CodeBuild Project ${projectName} has started Build ${buildId} ****`);
+        core.info(`**** Build ${buildId} has started. Following it's output ****`);
 
         const forwarder = new CloudWatchLogsForwarder(build.logs.groupName, build.logs.streamName);
         await forwarder.forwardLogEventsToGithubActions(buildId, undefined);
 
-        core.info(`**** CodeBuild Project ${projectName} has finished Build ${buildId} ****`);
+        core.info(`**** Build ${buildId} finished. Back to tracking pipeline status ****`);
       } else {
         core.warning(`CodeBuild Project ${projectName} ${buildId} is not ready!`);
       }

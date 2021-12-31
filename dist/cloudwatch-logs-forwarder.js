@@ -26,14 +26,14 @@ const client_codebuild_1 = require("@aws-sdk/client-codebuild");
 const util_1 = require("./util");
 const CLIENT = new client_cloudwatch_logs_1.CloudWatchLogsClient({});
 const CODEBUILD_CLIENT = new client_codebuild_1.CodeBuildClient({});
-// The default backoff is 15 seconds
-const BACKOFF = 15;
+// The default backoff is 2.5 seconds
+const BACKOFF = 2.5;
 class CloudWatchLogsForwarder {
     constructor(groupName, streamName) {
         this.consecutiveEmptyLogs = 0;
         this.totalEvents = 0;
-        // We start to wait for 30 seconds and increase by BACKOFF every time we get throttled
-        this.wait = 30;
+        // We start to wait for 5 seconds and increase by BACKOFF every time we get throttled
+        this.wait = 5;
         this.forwardLogEventsToGithubActions = async (buildId, nextToken) => {
             const batchGetBuildCommand = new client_codebuild_1.BatchGetBuildsCommand({ ids: [buildId] });
             const getLogEventsCommand = new client_cloudwatch_logs_1.GetLogEventsCommand({

@@ -7,8 +7,8 @@ import { sleep } from './util';
 const CLIENT = new CloudWatchLogsClient({});
 const CODEBUILD_CLIENT = new CodeBuildClient({});
 
-// The default backoff is 15 seconds
-const BACKOFF = 15;
+// The default backoff is 2.5 seconds
+const BACKOFF = 2.5;
 
 export class CloudWatchLogsForwarder {
   private groupName: string;
@@ -19,8 +19,8 @@ export class CloudWatchLogsForwarder {
 
   private totalEvents = 0;
 
-  // We start to wait for 30 seconds and increase by BACKOFF every time we get throttled
-  private wait = 30;
+  // We start to wait for 5 seconds and increase by BACKOFF every time we get throttled
+  private wait = 5;
 
   constructor(groupName: string, streamName: string) {
     this.groupName = groupName;
