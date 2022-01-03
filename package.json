@@ -1,5 +1,5 @@
 {
-  "name": "aws-codepipeline-trigger",
+  "name": "@moia-oss/aws-codepipeline-trigger",
   "version": "0.0.0",
   "description": "Trigger AWS CodePipeline from GitHub Actions",
   "main": "dist/index.js",

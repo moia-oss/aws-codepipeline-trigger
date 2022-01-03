@@ -80,6 +80,7 @@ The GitHub Action could look like this:
   with:
     pipeline: my-pipeline
     wait: true # optional (default: false)
+    follow-codebuild: true # optional (default: false)
 ```
 
 How you provide the secrets is up to you. Check the

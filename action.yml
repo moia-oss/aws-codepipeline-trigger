@@ -1,4 +1,4 @@
-name: 'aws-codepipeline-trigger'
+name: 'moia-oss/aws-codepipeline-trigger'
 description: 'Trigger an AWS CodePipeline from GitHub Actions'
 inputs:
   pipeline:
