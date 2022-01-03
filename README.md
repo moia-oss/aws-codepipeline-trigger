@@ -76,7 +76,7 @@ The GitHub Action could look like this:
     aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
     aws-region: eu-central-1
 - name: Start CodePipeline
-  uses: moia-oss/aws-codepipeline-trigger@v0.2.2
+  uses: moia-oss/aws-codepipeline-trigger@v1
   with:
     pipeline: my-pipeline
     wait: true # optional (default: false)
