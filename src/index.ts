@@ -28,7 +28,7 @@ const getNewestExecutionId = async (pipelineName: string): Promise<string> => {
 const waitForPipeline = async (
   pipelineName: string,
   pipelineExecutionId: string,
-  codebuilds: string[],
+  codebuilds?: string[],
 ): Promise<boolean> => {
   await sleep(10);
   const command = new GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
@@ -42,9 +42,11 @@ const waitForPipeline = async (
     const { status } = data.pipelineExecution;
     switch (status) {
       case PipelineExecutionStatus.InProgress: {
-        const projectToBuildBatchId = await codebuild.getInProgressProjectToBatchIds(codebuilds);
-        if (projectToBuildBatchId.length > 0) {
-          await codebuild.forwardLogEventsFromCodebuild(projectToBuildBatchId[0]);
+        if (codebuilds) {
+          const projectToBuildBatchId = await codebuild.getInProgressProjectToBatchIds(codebuilds);
+          if (projectToBuildBatchId.length > 0) {
+            await codebuild.forwardLogEventsFromCodebuild(projectToBuildBatchId[0]);
+          }
         }
         core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
         return await waitForPipeline(pipelineName, pipelineExecutionId, codebuilds);
@@ -80,8 +82,10 @@ const waitForPipeline = async (
 };
 
 const run = async (): Promise<void> => {
+  let codebuilds;
   const pipelineName: string = core.getInput('pipeline', { required: true });
   const wait: boolean = core.getBooleanInput('wait', { required: false });
+  const followCodeBuild: boolean = core.getBooleanInput('follow-codebuild', { required: false });
 
   const command = new StartPipelineExecutionCommand({ name: pipelineName });
 
@@ -91,7 +95,10 @@ const run = async (): Promise<void> => {
       throw new Error('No Execution ID');
     }
     if (wait) {
-      const codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
+      if (followCodeBuild) {
+        codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
+      }
+
       const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId, codebuilds);
       if (!executionResult) {
         throw new Error('Execution was unsucessful.');

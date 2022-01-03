@@ -48,9 +48,11 @@ const waitForPipeline = async (pipelineName, pipelineExecutionId, codebuilds) =>
         const { status } = data.pipelineExecution;
         switch (status) {
             case client_codepipeline_1.PipelineExecutionStatus.InProgress: {
-                const projectToBuildBatchId = await codebuild.getInProgressProjectToBatchIds(codebuilds);
-                if (projectToBuildBatchId.length > 0) {
-                    await codebuild.forwardLogEventsFromCodebuild(projectToBuildBatchId[0]);
+                if (codebuilds) {
+                    const projectToBuildBatchId = await codebuild.getInProgressProjectToBatchIds(codebuilds);
+                    if (projectToBuildBatchId.length > 0) {
+                        await codebuild.forwardLogEventsFromCodebuild(projectToBuildBatchId[0]);
+                    }
                 }
                 core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
                 return await waitForPipeline(pipelineName, pipelineExecutionId, codebuilds);
@@ -84,8 +86,10 @@ const waitForPipeline = async (pipelineName, pipelineExecutionId, codebuilds) =>
     }
 };
 const run = async () => {
+    let codebuilds;
     const pipelineName = core.getInput('pipeline', { required: true });
     const wait = core.getBooleanInput('wait', { required: false });
+    const followCodeBuild = core.getBooleanInput('follow-codebuild', { required: false });
     const command = new client_codepipeline_1.StartPipelineExecutionCommand({ name: pipelineName });
     try {
         const data = await CLIENT.send(command);
@@ -93,7 +97,9 @@ const run = async () => {
             throw new Error('No Execution ID');
         }
         if (wait) {
-            const codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
+            if (followCodeBuild) {
+                codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
+            }
             const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId, codebuilds);
             if (!executionResult) {
                 throw new Error('Execution was unsucessful.');
