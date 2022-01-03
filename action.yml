@@ -8,6 +8,10 @@ inputs:
     description: 'Wait for the CodePipeline to finish and exit with same result as the CodePipeline'
     required: false
     default: false
+  follow-codebuild:
+    description: 'This controls whether CodeBuild Logs will be forwarded to GitHub Actions'
+    required: false
+    default: false
 runs:
   using: 'node12'
   main: 'dist/index.js'

@@ -31,14 +31,39 @@ user or role you login to needs the following permissions:
         "codepipeline:ListPipelineExecutions"
       ],
       "Resource": ["arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${PipelineName}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codebuild:ListBuildsForProject",
+        "codebuild:BatchGetBuilds",
+      ],
+      "Resource": ["arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${CodeBuildProjectName}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:GetLogEvents",
+      ],
+      "Resource": ["arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${CodeBuildProjectName}:*"
     }
   ]
 }
 ```
 
-`codepipeline:GetPipelineExecution` and `codepipeline:ListPipelineExecutions` are only necessary, if you set `wait: true`,
-otherwise the GitHub Action Workflow continues without checking the pipeline
-state.
+`codepipeline:GetPipelineExecution` and `codepipeline:ListPipelineExecutions`
+are only necessary, if you set `wait: true`, otherwise the GitHub Action
+Workflow continues without checking the pipeline state.
+
+Furthermore, if you have set `wait: true` and `follow-codebuild: true` then aws-codepipeline-trigger is able to forward the outputs of the CodeBuild Actions inside of the CodePipeline. To make use of this feature, the following permissions must be set as well:
+
+- `codebuild:ListBuildBatchesForProject`
+- `codebuild:BatchGetBuilds`
+- `logs:GetLogEvents`
+
+for all the CodeBuild Projects that are part of the pipeline, which is triggered.
+
+CURRENT RESTRICTIONS: If you have multiple CodeBuilds running in parallel in the same stage aws-codepipeline-trigger picks up the first active CodeBuild and forwards it's output, ignoring everything else until it's completed.
 
 The GitHub Action could look like this:
 

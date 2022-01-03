@@ -7,9 +7,10 @@ import {
   ListPipelineExecutionsCommand,
 } from '@aws-sdk/client-codepipeline';
 
-const CLIENT = new CodePipelineClient({});
+import * as codebuild from './codebuild';
+import { sleep } from './util';
 
-const sleep = (s: number) => new Promise((resolve) => setTimeout(resolve, s * 1000));
+const CLIENT = new CodePipelineClient({});
 
 const getNewestExecutionId = async (pipelineName: string): Promise<string> => {
   const command = new ListPipelineExecutionsCommand({ pipelineName, maxResults: 1 });
@@ -24,7 +25,11 @@ const getNewestExecutionId = async (pipelineName: string): Promise<string> => {
   throw new Error('No Pipeline executions found');
 };
 
-const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string): Promise<boolean> => {
+const waitForPipeline = async (
+  pipelineName: string,
+  pipelineExecutionId: string,
+  codebuilds?: string[],
+): Promise<boolean> => {
   await sleep(10);
   const command = new GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
   try {
@@ -36,14 +41,21 @@ const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string
     }
     const { status } = data.pipelineExecution;
     switch (status) {
-      case PipelineExecutionStatus.InProgress:
+      case PipelineExecutionStatus.InProgress: {
+        if (codebuilds) {
+          const projectToBuildBatchId = await codebuild.getInProgressProjectToBatchIds(codebuilds);
+          if (projectToBuildBatchId.length > 0) {
+            await codebuild.forwardLogEventsFromCodebuild(projectToBuildBatchId[0]);
+          }
+        }
         core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
-        return await waitForPipeline(pipelineName, pipelineExecutionId);
+        return await waitForPipeline(pipelineName, pipelineExecutionId, codebuilds);
+      }
       case PipelineExecutionStatus.Cancelled: {
         core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);
         const newExecutionId = await getNewestExecutionId(pipelineName);
         core.info(`Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}'`);
-        return await waitForPipeline(pipelineName, newExecutionId);
+        return await waitForPipeline(pipelineName, newExecutionId, codebuilds);
       }
       case PipelineExecutionStatus.Succeeded:
         core.info(`Pipeline '${pipelineName}' succeeded.`);
@@ -70,8 +82,10 @@ const waitForPipeline = async (pipelineName: string, pipelineExecutionId: string
 };
 
 const run = async (): Promise<void> => {
+  let codebuilds;
   const pipelineName: string = core.getInput('pipeline', { required: true });
   const wait: boolean = core.getBooleanInput('wait', { required: false });
+  const followCodeBuild: boolean = core.getBooleanInput('follow-codebuild', { required: false });
 
   const command = new StartPipelineExecutionCommand({ name: pipelineName });
 
@@ -81,7 +95,11 @@ const run = async (): Promise<void> => {
       throw new Error('No Execution ID');
     }
     if (wait) {
-      const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId);
+      if (followCodeBuild) {
+        codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
+      }
+
+      const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId, codebuilds);
       if (!executionResult) {
         throw new Error('Execution was unsucessful.');
       }
