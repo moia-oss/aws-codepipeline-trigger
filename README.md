@@ -55,7 +55,7 @@ user or role you login to needs the following permissions:
 are only necessary, if you set `wait: true`, otherwise the GitHub Action
 Workflow continues without checking the pipeline state.
 
-Furthermore, if you have set `wait: true` then aws-codepipeline-trigger is able to forward the outputs of the CodeBuild Actions inside of the CodePipeline. To make use of this feature, the following permissions must be set as well:
+Furthermore, if you have set `wait: true` and `follow-codebuild: true` then aws-codepipeline-trigger is able to forward the outputs of the CodeBuild Actions inside of the CodePipeline. To make use of this feature, the following permissions must be set as well:
 
 - `codebuild:ListBuildBatchesForProject`
 - `codebuild:BatchGetBuilds`
