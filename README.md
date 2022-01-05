@@ -107,10 +107,11 @@ jobs:
           aws-session-token: ${{ secrets.INT_AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Start CodePipeline
-        uses: moia-oss/aws-codepipeline-trigger@v0.2.2
+        uses: moia-oss/aws-codepipeline-trigger@v1
         with:
           pipeline: my-pipeline-int
           wait: true
+          follow-codebuild: true
   deploy-prd:
     name: Deploy to PRD
     needs: deploy-int
@@ -126,8 +127,9 @@ jobs:
           aws-session-token: ${{ secrets.PRD_AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Start CodePipeline
-        uses: moia-oss/aws-codepipeline-trigger@v0.2.2
+        uses: moia-oss/aws-codepipeline-trigger@v1
         with:
           pipeline: my-pipeline-prd
           wait: true
+          follow-codebuild: true
 ```
