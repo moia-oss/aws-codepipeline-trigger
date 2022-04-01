@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.6.0",
-    "@aws-sdk/client-cloudwatch-logs": "^3.50.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.58.0",
     "@aws-sdk/client-codebuild": "^3.50.0",
     "@aws-sdk/client-codepipeline": "^3.50.0",
     "@moia-oss/eslint-prettier-typescript-config": "^0.11.7",
