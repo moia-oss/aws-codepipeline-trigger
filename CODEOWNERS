@@ -7,4 +7,8 @@
 # the repo. Unless a later match takes precedence,
 # mentioned account names will be requested for
 # review when someone opens a pull request.
+<<<<<<< HEAD
 *   @msiuts @bemica @snowiow @guusvw @djablonski-moia @oppermax @cbrgm @johannes-gehrs
+=======
+*   @msiuts @bemica @snowiow @guusvw @djablonski-moia @oppermax @cbrgm @johannes-gehrs 
+>>>>>>> b4575135a41452b9b564f3588ea772d3abd369f7
