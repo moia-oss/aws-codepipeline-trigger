@@ -22,7 +22,7 @@
     "@aws-sdk/client-cloudwatch-logs": "^3.197.0",
     "@aws-sdk/client-codebuild": "^3.121.0",
     "@aws-sdk/client-codepipeline": "^3.200.0",
-    "@moia-oss/eslint-prettier-typescript-config": "^0.11.21",
+    "@moia-oss/eslint-prettier-typescript-config": "^0.11.36",
     "@types/node": "^18.11.8",
     "@typescript-eslint/eslint-plugin": "^5.42.0",
     "@typescript-eslint/parser": "^5.42.0",
