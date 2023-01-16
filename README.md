@@ -66,7 +66,7 @@ The GitHub Action could look like this:
 
 ```yaml
 - name: configure AWS creds
-  uses: aws-actions/configure-aws-credentials@v1
+  uses: aws-actions/configure-aws-credentials@v1-node16
   with:
     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -100,7 +100,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: configure AWS creds
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.INT_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.INT_AWS_SECRET_ACCESS_KEY }}
@@ -120,7 +120,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: configure AWS creds
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.PRD_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PRD_AWS_SECRET_ACCESS_KEY }}
