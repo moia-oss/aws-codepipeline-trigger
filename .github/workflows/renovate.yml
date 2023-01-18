@@ -1,0 +1,13 @@
+name: Renovate
+on:
+  workflow_dispatch:
+  schedule:
+    # The "*" character has special semantics in YAML, so this string has to be quoted.
+    # At 00:01 on day-of-month 1.
+    - cron: '1 0 1 * *'
+jobs:
+  renovate-update-dependencies:
+    uses: moia-dev/github-workflows/.github/workflows/renovate.yml@main
+    secrets:
+      app_pem: ${{ secrets.ORG_MOIA_RENOVATE_APP_PEM }}
+      app_id: ${{ secrets.ORG_MOIA_RENOVATE_APP_ID }}
