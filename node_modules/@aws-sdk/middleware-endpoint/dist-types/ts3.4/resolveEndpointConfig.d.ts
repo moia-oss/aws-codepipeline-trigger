@@ -41,7 +41,7 @@ interface PreviouslyResolved<
 export interface EndpointResolvedConfig<
   T extends EndpointParameters = EndpointParameters
 > {
-  endpoint: Provider<Endpoint>;
+  endpoint?: Provider<Endpoint>;
   endpointProvider: (
     params: T,
     context?: {

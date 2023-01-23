@@ -8,6 +8,4 @@ export interface SSOToken {
   region?: string;
   startUrl?: string;
 }
-export declare const getSSOTokenFromFile: (
-  ssoStartUrl: string
-) => Promise<SSOToken>;
+export declare const getSSOTokenFromFile: (id: string) => Promise<SSOToken>;
