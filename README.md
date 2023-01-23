@@ -66,14 +66,14 @@ The GitHub Action could look like this:
 
 ```yaml
 - name: configure AWS creds
-  uses: aws-actions/configure-aws-credentials@v1
+  uses: aws-actions/configure-aws-credentials@v1-node16
   with:
     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
     aws-region: eu-central-1
 - name: Start CodePipeline
-  uses: moia-oss/aws-codepipeline-trigger@v1
+  uses: moia-oss/aws-codepipeline-trigger@v2
   with:
     pipeline: my-pipeline
     wait: true # optional (default: false)
@@ -98,16 +98,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: configure AWS creds
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.INT_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.INT_AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.INT_AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Start CodePipeline
-        uses: moia-oss/aws-codepipeline-trigger@v1
+        uses: moia-oss/aws-codepipeline-trigger@v2
         with:
           pipeline: my-pipeline-int
           wait: true
@@ -118,16 +118,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: configure AWS creds
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.PRD_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PRD_AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.PRD_AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Start CodePipeline
-        uses: moia-oss/aws-codepipeline-trigger@v1
+        uses: moia-oss/aws-codepipeline-trigger@v2
         with:
           pipeline: my-pipeline-prd
           wait: true
