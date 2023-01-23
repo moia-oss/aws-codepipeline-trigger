@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRuntimeConfig = void 0;
+const smithy_client_1 = require("@aws-sdk/smithy-client");
 const url_parser_1 = require("@aws-sdk/url-parser");
 const util_base64_1 = require("@aws-sdk/util-base64");
 const endpointResolver_1 = require("./endpoint/endpointResolver");
@@ -10,7 +11,7 @@ const getRuntimeConfig = (config) => ({
     base64Encoder: config?.base64Encoder ?? util_base64_1.toBase64,
     disableHostPrefix: config?.disableHostPrefix ?? false,
     endpointProvider: config?.endpointProvider ?? endpointResolver_1.defaultEndpointResolver,
-    logger: config?.logger ?? {},
+    logger: config?.logger ?? new smithy_client_1.NoOpLogger(),
     serviceId: config?.serviceId ?? "SSO",
     urlParser: config?.urlParser ?? url_parser_1.parseUrl,
 });

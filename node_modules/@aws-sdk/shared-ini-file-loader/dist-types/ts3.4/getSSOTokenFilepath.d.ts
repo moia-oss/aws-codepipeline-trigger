@@ -1,1 +1,1 @@
-export declare const getSSOTokenFilepath: (ssoStartUrl: string) => string;
+export declare const getSSOTokenFilepath: (id: string) => string;

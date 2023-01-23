@@ -1,4 +1,3 @@
-import { Logger as __Logger } from "@aws-sdk/types";
 import { SSOClientConfig } from "./SSOClient";
 /**
  * @internal
@@ -9,9 +8,9 @@ export declare const getRuntimeConfig: (config: SSOClientConfig) => {
     base64Encoder: import("@aws-sdk/types").Encoder;
     disableHostPrefix: boolean;
     endpointProvider: (endpointParams: import("./endpoint/EndpointParameters").EndpointParameters, context?: {
-        logger?: __Logger | undefined;
+        logger?: import("@aws-sdk/types").Logger | undefined;
     }) => import("@aws-sdk/types").EndpointV2;
-    logger: __Logger;
+    logger: import("@aws-sdk/types").Logger;
     serviceId: string;
     urlParser: import("@aws-sdk/types").UrlParser;
 };

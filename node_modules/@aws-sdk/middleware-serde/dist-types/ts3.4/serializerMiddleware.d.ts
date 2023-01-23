@@ -9,6 +9,6 @@ export declare const serializerMiddleware: <
   Output extends object,
   RuntimeUtils extends EndpointBearer
 >(
-  options: V1OrV2Endpoint<RuntimeUtils>,
+  options: V1OrV2Endpoint,
   serializer: RequestSerializer<any, RuntimeUtils>
 ) => SerializeMiddleware<Input, Output>;
