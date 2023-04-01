@@ -26,7 +26,7 @@
     "@aws-sdk/types": "^3.257.0",
     "@moia-oss/eslint-prettier-typescript-config": "^0.11.45",
     "@types/node": "^18.14.2",
-    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.50.0",
     "eslint": "^8.26.0",
     "prettier": "^2.7.1",
