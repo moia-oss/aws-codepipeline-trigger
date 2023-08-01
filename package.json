@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.9.0",
-    "@aws-sdk/client-cloudwatch-logs": "^3.363.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.379.1",
     "@aws-sdk/client-codebuild": "^3.363.0",
     "@aws-sdk/client-codepipeline": "^3.321.1",
     "@aws-sdk/types": "^3.357.0",
