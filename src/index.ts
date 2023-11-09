@@ -75,7 +75,7 @@ const waitForPipeline = async (
     }
   } catch (error) {
     core.error(
-      `An error occured while getting the status of pipeline '${pipelineName}' exucution: '${pipelineExecutionId}'.`,
+      `An error occured while getting the status of pipeline '${pipelineName}' execution: '${pipelineExecutionId}'.`,
     );
     throw error;
   }
