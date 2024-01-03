@@ -35,7 +35,7 @@ const waitForPipeline = async (
   try {
     const data = await CLIENT.send(command);
 
-    if (data.pipelineExecution === undefined || !data.pipelineExecution.status) {
+    if (!data.pipelineExecution?.status) {
       core.error('No Status for Pipeline');
       return false;
     }
