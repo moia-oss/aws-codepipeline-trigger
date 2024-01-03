@@ -6,9 +6,9 @@ describe('getCodeBuildsFromActions', () => {
       {
         name: 'nothing matches',
         actionTypeId: {
-          category: 'SomeCategory',
+          category: 'Source',
           provider: 'SomeProvider',
-          owner: 'SomeOwner',
+          owner: 'AWS',
           version: '1.0',
         },
       },
@@ -17,7 +17,7 @@ describe('getCodeBuildsFromActions', () => {
         actionTypeId: {
           category: 'Build',
           provider: 'SomeProvider',
-          owner: 'SomeOwner',
+          owner: 'AWS',
           version: '1.0',
         },
       },
@@ -26,7 +26,7 @@ describe('getCodeBuildsFromActions', () => {
         actionTypeId: {
           category: 'Build',
           provider: 'CodeBuild',
-          owner: 'SomeOwner',
+          owner: 'AWS',
           version: '1.0',
         },
         configuration: {
@@ -38,7 +38,7 @@ describe('getCodeBuildsFromActions', () => {
         actionTypeId: {
           category: 'Build',
           provider: 'CodeBuild',
-          owner: 'SomeOwner',
+          owner: 'AWS',
           version: '1.0',
         },
       },
@@ -57,9 +57,9 @@ describe('getCodeBuildsFromStages', () => {
           {
             name: 'nothing matches',
             actionTypeId: {
-              category: 'SomeCategory',
+              category: 'Source',
               provider: 'SomeProvider',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
           },
@@ -68,7 +68,7 @@ describe('getCodeBuildsFromStages', () => {
             actionTypeId: {
               category: 'Build',
               provider: 'SomeProvider',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
           },
@@ -77,7 +77,7 @@ describe('getCodeBuildsFromStages', () => {
             actionTypeId: {
               category: 'Build',
               provider: 'CodeBuild',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
             configuration: {
@@ -89,7 +89,7 @@ describe('getCodeBuildsFromStages', () => {
             actionTypeId: {
               category: 'Build',
               provider: 'CodeBuild',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
           },
@@ -103,7 +103,7 @@ describe('getCodeBuildsFromStages', () => {
             actionTypeId: {
               category: 'Build',
               provider: 'CodeBuild',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
             configuration: {
@@ -113,9 +113,9 @@ describe('getCodeBuildsFromStages', () => {
           {
             name: 'nothing matches',
             actionTypeId: {
-              category: 'SomeCategory',
+              category: 'Source',
               provider: 'SomeProvider',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
           },
@@ -124,7 +124,7 @@ describe('getCodeBuildsFromStages', () => {
             actionTypeId: {
               category: 'Build',
               provider: 'SomeProvider',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
           },
@@ -133,7 +133,7 @@ describe('getCodeBuildsFromStages', () => {
             actionTypeId: {
               category: 'Build',
               provider: 'CodeBuild',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
             configuration: {
@@ -145,7 +145,7 @@ describe('getCodeBuildsFromStages', () => {
             actionTypeId: {
               category: 'Build',
               provider: 'CodeBuild',
-              owner: 'SomeOwner',
+              owner: 'AWS',
               version: '1.0',
             },
           },
