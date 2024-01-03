@@ -1,8 +1,0 @@
-{
-  "extends": "@moia-oss/eslint-prettier-typescript-config",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["./src"]
-}
