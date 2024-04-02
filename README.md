@@ -31,17 +31,23 @@ user or role you login to needs the following permissions:
         "codepipeline:GetPipelineExecution",
         "codepipeline:ListPipelineExecutions"
       ],
-      "Resource": ["arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${PipelineName}"]
+      "Resource": [
+        "arn:aws:codepipeline:${AWS::Region}:${AWS::AccountId}:${PipelineName}"
+      ]
     },
     {
       "Effect": "Allow",
       "Action": ["codebuild:ListBuildsForProject", "codebuild:BatchGetBuilds"],
-      "Resource": ["arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${CodeBuildProjectName}"]
+      "Resource": [
+        "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${CodeBuildProjectName}"
+      ]
     },
     {
       "Effect": "Allow",
       "Action": ["logs:GetLogEvents"],
-      "Resource": ["arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${CodeBuildProjectName}:*"]
+      "Resource": [
+        "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${CodeBuildProjectName}:*"
+      ]
     }
   ]
 }

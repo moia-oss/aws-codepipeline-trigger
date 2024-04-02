@@ -1,3 +1,4 @@
+import { CloudWatchLogsForwarder } from './cloudwatch-logs-forwarder';
 import * as core from '@actions/core';
 import {
   BatchGetBuildsCommand,
@@ -6,28 +7,35 @@ import {
   StatusType,
 } from '@aws-sdk/client-codebuild';
 import { GetPipelineCommand } from '@aws-sdk/client-codepipeline';
-import type { ActionDeclaration, CodePipelineClient, StageDeclaration } from '@aws-sdk/client-codepipeline';
-
-import { CloudWatchLogsForwarder } from './cloudwatch-logs-forwarder';
+import type {
+  ActionDeclaration,
+  CodePipelineClient,
+  StageDeclaration,
+} from '@aws-sdk/client-codepipeline';
 
 const CLIENT = new CodeBuildClient({});
 
 type ProjectToBuildBatchId = [string, string];
 
-export const getCodeBuildsFromActions = (actions: ActionDeclaration[]): string[] =>
+export const getCodeBuildsFromActions = (
+  actions: ActionDeclaration[],
+): string[] =>
   actions
-    .map((action) => {
-      if (action.actionTypeId?.category === 'Build' && action.actionTypeId?.provider === 'CodeBuild') {
+    .map(action => {
+      if (
+        action.actionTypeId?.category === 'Build' &&
+        action.actionTypeId?.provider === 'CodeBuild'
+      ) {
         if (action.configuration !== undefined) {
           return action.configuration.ProjectName;
         }
       }
       return '';
     })
-    .filter((x) => x !== '');
+    .filter(x => x !== '');
 
 export const getCodeBuildsFromStages = (stages: StageDeclaration[]): string[] =>
-  stages.flatMap((stage) => {
+  stages.flatMap(stage => {
     if (stage.actions !== undefined) {
       return getCodeBuildsFromActions(stage.actions);
     }
@@ -47,10 +55,14 @@ export const getCodebuildProjectsForPipeline = async (
     if (output.pipeline?.stages !== undefined) {
       return getCodeBuildsFromStages(output.pipeline?.stages);
     }
-    core.warning("Couldn't get pipeline information. You are probably missing permissions.");
+    core.warning(
+      "Couldn't get pipeline information. You are probably missing permissions.",
+    );
     return [];
   } catch (error) {
-    core.error(`An error occured while getting pipeline information for '${codePipelineName}'`);
+    core.error(
+      `An error occured while getting pipeline information for '${codePipelineName}'`,
+    );
     return [];
   }
 };
@@ -77,14 +89,18 @@ const isBuildIdInProgress = async (buildId: string): Promise<boolean> => {
 /*
  * Searches through the passed CodeBuild Projects and returns build IDs, which are IN_PROGRESS
  */
-export const getInProgressBuildId = async (codebuildProjectName: string): Promise<string | undefined> => {
+export const getInProgressBuildId = async (
+  codebuildProjectName: string,
+): Promise<string | undefined> => {
   const command = new ListBuildsForProjectCommand({
     projectName: codebuildProjectName,
   });
   try {
     const output = await CLIENT.send(command);
     if (output.ids === undefined || output.ids.length === 0) {
-      core.info(`CodeBuild Project ${codebuildProjectName} is currently not in progress`);
+      core.info(
+        `CodeBuild Project ${codebuildProjectName} is currently not in progress`,
+      );
       return undefined;
     }
     if (await isBuildIdInProgress(output.ids[0])) {
@@ -102,21 +118,33 @@ export const getInProgressBuildId = async (codebuildProjectName: string): Promis
   }
 };
 
-export const forwardLogEventsFromCodebuild = async ([projectName, buildId]: ProjectToBuildBatchId) => {
+export const forwardLogEventsFromCodebuild = async ([
+  projectName,
+  buildId,
+]: ProjectToBuildBatchId) => {
   const command = new BatchGetBuildsCommand({ ids: [buildId] });
   try {
     const output = await CLIENT.send(command);
     if (output.builds !== undefined) {
       const [build] = output.builds;
       if (build.logs?.groupName && build.logs?.streamName) {
-        core.info(`**** Build ${buildId} has started. Following it's output ****`);
+        core.info(
+          `**** Build ${buildId} has started. Following it's output ****`,
+        );
 
-        const forwarder = new CloudWatchLogsForwarder(build.logs.groupName, build.logs.streamName);
+        const forwarder = new CloudWatchLogsForwarder(
+          build.logs.groupName,
+          build.logs.streamName,
+        );
         await forwarder.forwardLogEventsToGithubActions(buildId, undefined);
 
-        core.info(`**** Build ${buildId} finished. Back to tracking pipeline status ****`);
+        core.info(
+          `**** Build ${buildId} finished. Back to tracking pipeline status ****`,
+        );
       } else {
-        core.warning(`CodeBuild Project ${projectName} ${buildId} is not ready!`);
+        core.warning(
+          `CodeBuild Project ${projectName} ${buildId} is not ready!`,
+        );
       }
     }
   } catch (error) {
@@ -130,14 +158,21 @@ export const forwardLogEventsFromCodebuild = async ([projectName, buildId]: Proj
 /*
  * Used in filter methods to get out just the ProjectToBuildBatchIds which have a build id set
  */
-export const isProjectToBuildBatchId = (x: (string | undefined)[]): x is ProjectToBuildBatchId => !!x[1];
+export const isProjectToBuildBatchId = (
+  x: (string | undefined)[],
+): x is ProjectToBuildBatchId => !!x[1];
 
 /*
  * Get the BuildBatchIds of the passed CodeBuild Projects.
  */
-export const getInProgressProjectToBatchIds = async (codebuildProjects: string[]): Promise<ProjectToBuildBatchId[]> => {
+export const getInProgressProjectToBatchIds = async (
+  codebuildProjects: string[],
+): Promise<ProjectToBuildBatchId[]> => {
   const projectsToBuildBatches: (string | undefined)[][] = await Promise.all(
-    codebuildProjects.map(async (codebuildProject) => [codebuildProject, await getInProgressBuildId(codebuildProject)]),
+    codebuildProjects.map(async codebuildProject => [
+      codebuildProject,
+      await getInProgressBuildId(codebuildProject),
+    ]),
   );
 
   return projectsToBuildBatches.filter(isProjectToBuildBatchId);

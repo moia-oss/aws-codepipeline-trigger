@@ -1,3 +1,5 @@
+import * as codebuild from './codebuild';
+import { sleep } from './util';
 import * as core from '@actions/core';
 import {
   CodePipelineClient,
@@ -7,15 +9,18 @@ import {
   ListPipelineExecutionsCommand,
 } from '@aws-sdk/client-codepipeline';
 
-import * as codebuild from './codebuild';
-import { sleep } from './util';
-
 const CLIENT = new CodePipelineClient({});
 
 const getNewestExecutionId = async (pipelineName: string): Promise<string> => {
-  const command = new ListPipelineExecutionsCommand({ pipelineName, maxResults: 1 });
+  const command = new ListPipelineExecutionsCommand({
+    pipelineName,
+    maxResults: 1,
+  });
   const data = await CLIENT.send(command);
-  if (data.pipelineExecutionSummaries && data.pipelineExecutionSummaries.length > 0) {
+  if (
+    data.pipelineExecutionSummaries &&
+    data.pipelineExecutionSummaries.length > 0
+  ) {
     const executionId = data.pipelineExecutionSummaries[0].pipelineExecutionId;
     if (executionId) {
       return executionId;
@@ -31,7 +36,10 @@ const waitForPipeline = async (
   codebuilds?: string[],
 ): Promise<boolean> => {
   await sleep(10);
-  const command = new GetPipelineExecutionCommand({ pipelineName, pipelineExecutionId });
+  const command = new GetPipelineExecutionCommand({
+    pipelineName,
+    pipelineExecutionId,
+  });
   try {
     const data = await CLIENT.send(command);
 
@@ -43,18 +51,31 @@ const waitForPipeline = async (
     switch (status) {
       case PipelineExecutionStatus.InProgress: {
         if (codebuilds) {
-          const projectToBuildBatchId = await codebuild.getInProgressProjectToBatchIds(codebuilds);
+          const projectToBuildBatchId =
+            await codebuild.getInProgressProjectToBatchIds(codebuilds);
           if (projectToBuildBatchId.length > 0) {
-            await codebuild.forwardLogEventsFromCodebuild(projectToBuildBatchId[0]);
+            await codebuild.forwardLogEventsFromCodebuild(
+              projectToBuildBatchId[0],
+            );
           }
         }
-        core.info(`Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`);
-        return await waitForPipeline(pipelineName, pipelineExecutionId, codebuilds);
+        core.info(
+          `Pipeline '${pipelineName}' in progress waiting for 10 more seconds.`,
+        );
+        return await waitForPipeline(
+          pipelineName,
+          pipelineExecutionId,
+          codebuilds,
+        );
       }
       case PipelineExecutionStatus.Cancelled: {
-        core.info(`Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`);
+        core.info(
+          `Pipeline '${pipelineName}' was canceled. Trying to get new execution ID.`,
+        );
         const newExecutionId = await getNewestExecutionId(pipelineName);
-        core.info(`Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}'`);
+        core.info(
+          `Waiting on pipeline '${pipelineName}' with new execution id '${newExecutionId}'`,
+        );
         return await waitForPipeline(pipelineName, newExecutionId, codebuilds);
       }
       case PipelineExecutionStatus.Succeeded:
@@ -67,7 +88,9 @@ const waitForPipeline = async (
         core.error(`Pipeline '${pipelineName}' stopped.`);
         return false;
       case PipelineExecutionStatus.Superseded:
-        core.warning(`Pipeline '${pipelineName}' was superseded. Skipping rest of the execution.`);
+        core.warning(
+          `Pipeline '${pipelineName}' was superseded. Skipping rest of the execution.`,
+        );
         return true;
       default:
         core.error(`Unexpected status: ${status} given.`);
@@ -85,7 +108,9 @@ const run = async (): Promise<void> => {
   let codebuilds;
   const pipelineName: string = core.getInput('pipeline', { required: true });
   const wait: boolean = core.getBooleanInput('wait', { required: false });
-  const followCodeBuild: boolean = core.getBooleanInput('follow-codebuild', { required: false });
+  const followCodeBuild: boolean = core.getBooleanInput('follow-codebuild', {
+    required: false,
+  });
 
   const command = new StartPipelineExecutionCommand({ name: pipelineName });
 
@@ -96,16 +121,25 @@ const run = async (): Promise<void> => {
     }
     if (wait) {
       if (followCodeBuild) {
-        codebuilds = await codebuild.getCodebuildProjectsForPipeline(CLIENT, pipelineName);
+        codebuilds = await codebuild.getCodebuildProjectsForPipeline(
+          CLIENT,
+          pipelineName,
+        );
       }
 
-      const executionResult = await waitForPipeline(pipelineName, data.pipelineExecutionId, codebuilds);
+      const executionResult = await waitForPipeline(
+        pipelineName,
+        data.pipelineExecutionId,
+        codebuilds,
+      );
       if (!executionResult) {
         throw new Error('Execution was unsucessful.');
       }
     }
   } catch (error) {
-    core.error(`An error occured while starting Codepipeline '${pipelineName}'`);
+    core.error(
+      `An error occured while starting Codepipeline '${pipelineName}'`,
+    );
     throw error;
   }
 };
