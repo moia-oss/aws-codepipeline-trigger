@@ -1,8 +1,13 @@
-import * as core from '@actions/core';
-import { CloudWatchLogsClient, GetLogEventsCommand } from '@aws-sdk/client-cloudwatch-logs';
-import { BatchGetBuildsCommand, CodeBuildClient } from '@aws-sdk/client-codebuild';
-
 import { sleep } from './util';
+import * as core from '@actions/core';
+import {
+  CloudWatchLogsClient,
+  GetLogEventsCommand,
+} from '@aws-sdk/client-cloudwatch-logs';
+import {
+  BatchGetBuildsCommand,
+  CodeBuildClient,
+} from '@aws-sdk/client-codebuild';
 
 const CLIENT = new CloudWatchLogsClient({});
 const CODEBUILD_CLIENT = new CodeBuildClient({});
@@ -27,7 +32,10 @@ export class CloudWatchLogsForwarder {
     this.streamName = streamName;
   }
 
-  public forwardLogEventsToGithubActions = async (buildId: string, nextToken?: string): Promise<boolean> => {
+  public forwardLogEventsToGithubActions = async (
+    buildId: string,
+    nextToken?: string,
+  ): Promise<boolean> => {
     const batchGetBuildCommand = new BatchGetBuildsCommand({ ids: [buildId] });
     const getLogEventsCommand = new GetLogEventsCommand({
       logGroupName: this.groupName,
@@ -48,7 +56,10 @@ export class CloudWatchLogsForwarder {
       const [currentBuild] = getBuildOutput.builds;
       const { nextForwardToken, events = [] } = getLogEventsOutput;
 
-      if (events.length === 0 && (this.totalEvents > 0 || currentBuild.endTime)) {
+      if (
+        events.length === 0 &&
+        (this.totalEvents > 0 || currentBuild.endTime)
+      ) {
         this.consecutiveEmptyLogs += 1;
       } else {
         this.consecutiveEmptyLogs = 0;
@@ -63,7 +74,10 @@ export class CloudWatchLogsForwarder {
       }
 
       await sleep(this.wait);
-      return await this.forwardLogEventsToGithubActions(buildId, nextForwardToken);
+      return await this.forwardLogEventsToGithubActions(
+        buildId,
+        nextForwardToken,
+      );
     } catch (error) {
       const err = error as Error;
       if (err.message && err.message.search('Rate exceeded') !== -1) {
