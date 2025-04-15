@@ -104,3 +104,6 @@ typings/
 
 # VSCode Specific files
 .vscode/
+
+# Intellij specific files
+.idea/
