@@ -21,7 +21,7 @@ export const getCodeBuildsFromActions = (
   actions: ActionDeclaration[],
 ): string[] =>
   actions
-    .map(action => {
+    .map((action) => {
       if (
         action.actionTypeId?.category === 'Build' &&
         action.actionTypeId?.provider === 'CodeBuild'
@@ -32,10 +32,10 @@ export const getCodeBuildsFromActions = (
       }
       return '';
     })
-    .filter(x => x !== '');
+    .filter((x) => x !== '');
 
 export const getCodeBuildsFromStages = (stages: StageDeclaration[]): string[] =>
-  stages.flatMap(stage => {
+  stages.flatMap((stage) => {
     if (stage.actions !== undefined) {
       return getCodeBuildsFromActions(stage.actions);
     }
@@ -61,7 +61,7 @@ export const getCodebuildProjectsForPipeline = async (
     return [];
   } catch (error) {
     core.error(
-      `An error occured while getting pipeline information for '${codePipelineName}'`,
+      `An error occurred while getting pipeline information for '${codePipelineName}': ${(error as Error).message}`,
     );
     return [];
   }
@@ -169,7 +169,7 @@ export const getInProgressProjectToBatchIds = async (
   codebuildProjects: string[],
 ): Promise<ProjectToBuildBatchId[]> => {
   const projectsToBuildBatches: (string | undefined)[][] = await Promise.all(
-    codebuildProjects.map(async codebuildProject => [
+    codebuildProjects.map(async (codebuildProject) => [
       codebuildProject,
       await getInProgressBuildId(codebuildProject),
     ]),
