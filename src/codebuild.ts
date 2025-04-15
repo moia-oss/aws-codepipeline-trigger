@@ -61,7 +61,7 @@ export const getCodebuildProjectsForPipeline = async (
     return [];
   } catch (error) {
     core.error(
-        `An error occurred while getting pipeline information for '${codePipelineName}': ${(error as Error).message}`,
+      `An error occurred while getting pipeline information for '${codePipelineName}': ${(error as Error).message}`,
     );
     return [];
   }
