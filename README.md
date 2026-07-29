@@ -3,6 +3,15 @@
 **_Trigger AWS CodePipeline from GitHub Actions and have the possibility to
 wait for the execution result_**
 
+## Releasing
+
+1. Push changes to a branch (no need to merge to master first)
+2. Create a GitHub release targeting that branch with a semver tag (e.g. `v2.3.0`)
+3. The [publish workflow](.github/workflows/publish.yml) runs automatically: builds the ncc bundle and force-pushes it back to the tag
+
+The committed `dist/` is plain tsc - the publish workflow is what produces the bundled dist that consumers actually run.
+Do not manually commit ncc output.
+
 ## Intro
 
 If you want to control the deployment from GitHub Actions, but have specific
@@ -72,14 +81,14 @@ The GitHub Action could look like this:
 
 ```yaml
 - name: configure AWS creds
-  uses: aws-actions/configure-aws-credentials@v1-node16
+  uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
   with:
     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
     aws-region: eu-central-1
 - name: Start CodePipeline
-  uses: moia-oss/aws-codepipeline-trigger@v2
+  uses: moia-oss/aws-codepipeline-trigger@v2.2.0
   with:
     pipeline: my-pipeline
     wait: true # optional (default: false)
@@ -104,16 +113,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       - name: configure AWS creds
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           aws-access-key-id: ${{ secrets.INT_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.INT_AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.INT_AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Start CodePipeline
-        uses: moia-oss/aws-codepipeline-trigger@v2
+        uses: moia-oss/aws-codepipeline-trigger@v2.2.0
         with:
           pipeline: my-pipeline-int
           wait: true
@@ -124,16 +133,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       - name: configure AWS creds
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           aws-access-key-id: ${{ secrets.PRD_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PRD_AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.PRD_AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Start CodePipeline
-        uses: moia-oss/aws-codepipeline-trigger@v2
+        uses: moia-oss/aws-codepipeline-trigger@v2.2.0
         with:
           pipeline: my-pipeline-prd
           wait: true
