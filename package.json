@@ -4,7 +4,7 @@
   "description": "Trigger AWS CodePipeline from GitHub Actions",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx @vercel/ncc build",
+    "build": "npx @vercel/ncc build src/index.ts -o dist",
     "test": "jest",
     "lint": "eslint ./src/",
     "lint:fix": "eslint --fix ./src/",
