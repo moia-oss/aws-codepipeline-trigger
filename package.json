@@ -13,25 +13,25 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "@vercel/ncc": "^0.44.1",
-    "eslint": "^10.8.0",
+    "@vercel/ncc": "^0.45.0",
+    "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
-    "jest": "^30.4.2",
-    "ts-jest": "^29.4.12",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.65.0"
+    "jest": "^30.5.2",
+    "ts-jest": "^29.4.14",
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.70.1"
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
-    "@aws-sdk/client-cloudwatch-logs": "^3.1097.0",
-    "@aws-sdk/client-codebuild": "^3.1097.0",
-    "@aws-sdk/client-codepipeline": "^3.1097.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.1141.0",
+    "@aws-sdk/client-codebuild": "^3.1141.0",
+    "@aws-sdk/client-codepipeline": "^3.1141.0",
     "@aws-sdk/types": "^3.775.0",
     "@eslint/js": "^10.0.1",
-    "@types/node": "^26.1.2",
-    "@typescript-eslint/eslint-plugin": "^8.65.0",
-    "@typescript-eslint/parser": "^8.65.0",
-    "prettier": "^3.9.6",
-    "uuid": "^14.0.1"
+    "@types/node": "^26.6.3",
+    "@typescript-eslint/eslint-plugin": "^8.70.1",
+    "@typescript-eslint/parser": "^8.70.1",
+    "prettier": "^3.9.9",
+    "uuid": "^14.0.2"
   }
 }
