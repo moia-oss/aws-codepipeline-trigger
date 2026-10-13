@@ -12,6 +12,23 @@ wait for the execution result_**
 The committed `dist/` is plain tsc - the publish workflow is what produces the bundled dist that consumers actually run.
 Do not manually commit ncc output.
 
+## Development
+
+```sh
+npm ci
+npm run format:check
+npm run typecheck
+npm run lint
+npm run build
+npm test
+```
+
+CI runs the same steps (see [ci-checks.yml](.github/workflows/ci-checks.yml)).
+
+TypeScript 7 (`@typescript/native`) provides `tsc` and is used for `npm run typecheck`.
+`typescript` itself is aliased to `@typescript/typescript6` because typescript-eslint, ts-jest and ncc need the
+JS compiler API, which TypeScript 7 does not offer. Drop the alias once typescript-eslint supports TypeScript 7.
+
 ## Intro
 
 If you want to control the deployment from GitHub Actions, but have specific
