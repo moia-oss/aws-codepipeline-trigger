@@ -1,4 +1,4 @@
-import { sleep } from './util';
+import { isAccessDeniedError, isThrottlingError, sleep } from './util';
 import * as core from '@actions/core';
 import {
   CloudWatchLogsClient,
@@ -10,7 +10,10 @@ import {
 } from '@aws-sdk/client-codebuild';
 
 const CLIENT = new CloudWatchLogsClient({});
-const CODEBUILD_CLIENT = new CodeBuildClient({});
+const CODEBUILD_CLIENT = new CodeBuildClient({
+  retryMode: 'adaptive',
+  maxAttempts: 8,
+});
 
 // The default backoff is 2.5 seconds
 const BACKOFF = 2.5;
@@ -80,16 +83,22 @@ export class CloudWatchLogsForwarder {
       );
     } catch (error) {
       const err = error as Error;
-      if (err.message && err.message.search('Rate exceeded') !== -1) {
+      if (isThrottlingError(error)) {
         // If we get rate exceeded, we do a backoff retry
         this.wait += BACKOFF;
         await sleep(this.wait);
         return this.forwardLogEventsToGithubActions(buildId, nextToken);
       }
 
-      core.warning(
-        `Couldn't get log events from log group ${this.groupName}. Consider adding permission getLogEvents. ${err.message}`,
-      );
+      if (isAccessDeniedError(error)) {
+        core.warning(
+          `Couldn't get log events from log group ${this.groupName}. Consider adding the 'logs:GetLogEvents' and 'codebuild:BatchGetBuilds' permissions. ${err.message}`,
+        );
+      } else {
+        core.warning(
+          `Couldn't get log events from log group ${this.groupName}: ${err.message}`,
+        );
+      }
       return true;
     }
   };
