@@ -19,7 +19,6 @@ import type {
   StageDeclaration,
 } from '@aws-sdk/client-codepipeline';
 
-// Adaptive retries back off client-side when CodeBuild throttles us, instead of failing the call.
 const CLIENT = new CodeBuildClient({ retryMode: 'adaptive', maxAttempts: 8 });
 
 // CodeBuild's List*/BatchGet* APIs have low rate limits. Pipelines (e.g. CDK pipelines) can contain
@@ -79,10 +78,6 @@ export const getCodebuildProjectsForPipeline = async (
   }
 };
 
-/*
- * Report a failed CodeBuild API call. Only real permission errors mention a missing permission;
- * throttling is expected with many projects and is retried on the next poll.
- */
 export const reportCodeBuildError = (
   operation: string,
   permission: string,
