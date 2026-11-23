@@ -63284,17 +63284,10 @@ var __webpack_exports__ = {};
 const sleep = (s) => new Promise((resolve) => {
     setTimeout(resolve, s * 1000);
 });
-/*
- * True if the AWS API rejected the call because of rate limiting ("Rate exceeded").
- * Throttling is not a permission problem and should not be reported as one.
- */
 const isThrottlingError = (error) => {
     const { name = '', message = '' } = (error ?? {});
     return (['ThrottlingException', 'TooManyRequestsException', 'Throttling'].includes(name) || /rate exceeded/i.test(message));
 };
-/*
- * True if the AWS API rejected the call because the caller lacks a permission.
- */
 const isAccessDeniedError = (error) => {
     const { name = '', message = '' } = (error ?? {});
     return (['AccessDeniedException', 'AccessDenied', 'UnauthorizedOperation'].includes(name) || /not authorized to perform|access ?denied/i.test(message));
@@ -63316,9 +63309,6 @@ const mapWithConcurrency = async (items, limit, fn) => {
     await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
     return results;
 };
-/*
- * Split an array into chunks of at most `size` elements.
- */
 const chunk = (items, size) => {
     const chunks = [];
     for (let i = 0; i < items.length; i += size) {
@@ -66360,7 +66350,6 @@ var client_codepipeline_dist_cjs = __nccwpck_require__(8232);
 
 
 
-// Adaptive retries back off client-side when CodeBuild throttles us, instead of failing the call.
 const codebuild_CLIENT = new client_codebuild_dist_cjs/* CodeBuildClient */.bex({ retryMode: 'adaptive', maxAttempts: 8 });
 // CodeBuild's List*/BatchGet* APIs have low rate limits. Pipelines (e.g. CDK pipelines) can contain
 // dozens of CodeBuild projects, so we never query all of them at once.
@@ -66401,10 +66390,6 @@ const getCodebuildProjectsForPipeline = async (client, codePipelineName) => {
         return [];
     }
 };
-/*
- * Report a failed CodeBuild API call. Only real permission errors mention a missing permission;
- * throttling is expected with many projects and is retried on the next poll.
- */
 const reportCodeBuildError = (operation, permission, resource, error) => {
     const { message } = error;
     if (isThrottlingError(error)) {
