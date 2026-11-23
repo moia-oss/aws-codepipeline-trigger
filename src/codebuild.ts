@@ -1,4 +1,10 @@
 import { CloudWatchLogsForwarder } from './cloudwatch-logs-forwarder';
+import {
+  chunk,
+  isAccessDeniedError,
+  isThrottlingError,
+  mapWithConcurrency,
+} from './util';
 import * as core from '@actions/core';
 import {
   BatchGetBuildsCommand,
@@ -13,7 +19,12 @@ import type {
   StageDeclaration,
 } from '@aws-sdk/client-codepipeline';
 
-const CLIENT = new CodeBuildClient({});
+const CLIENT = new CodeBuildClient({ retryMode: 'adaptive', maxAttempts: 8 });
+
+// CodeBuild's List*/BatchGet* APIs have low rate limits. Pipelines (e.g. CDK pipelines) can contain
+// dozens of CodeBuild projects, so we never query all of them at once.
+const MAX_CONCURRENT_LIST_CALLS = 3;
+const MAX_IDS_PER_BATCH_GET_BUILDS = 100;
 
 type ProjectToBuildBatchId = [string, string];
 
@@ -67,29 +78,32 @@ export const getCodebuildProjectsForPipeline = async (
   }
 };
 
-const isBuildIdInProgress = async (buildId: string): Promise<boolean> => {
-  const command = new BatchGetBuildsCommand({ ids: [buildId] });
-  try {
-    const output = await CLIENT.send(command);
-    if (!output.builds) {
-      core.warning(`No builds found for build ID: ${buildId}`);
-      return false;
-    }
-
-    return output.builds[0].buildStatus === StatusType.IN_PROGRESS;
-  } catch (error) {
-    const err = error as Error;
+export const reportCodeBuildError = (
+  operation: string,
+  permission: string,
+  resource: string,
+  error: unknown,
+): void => {
+  const { message } = error as Error;
+  if (isThrottlingError(error)) {
+    core.info(
+      `CodeBuild throttled ${operation} for '${resource}'. Retrying on the next poll.`,
+    );
+  } else if (isAccessDeniedError(error)) {
     core.warning(
-      `Couldn't get build with id '${buildId}', consider adding the codebuild:BatchGetBuilds permission. ${err.message}`,
+      `Not allowed to call ${operation} for '${resource}'. Consider adding the '${permission}' permission. ${message}`,
+    );
+  } else {
+    core.warning(
+      `An error occurred while calling ${operation} for '${resource}': ${message}`,
     );
   }
-  return false;
 };
 
 /*
- * Searches through the passed CodeBuild Projects and returns build IDs, which are IN_PROGRESS
+ * Returns the ID of the most recent build of a CodeBuild project, if there is one.
  */
-export const getInProgressBuildId = async (
+export const getLatestBuildId = async (
   codebuildProjectName: string,
 ): Promise<string | undefined> => {
   const command = new ListBuildsForProjectCommand({
@@ -103,19 +117,41 @@ export const getInProgressBuildId = async (
       );
       return undefined;
     }
-    if (await isBuildIdInProgress(output.ids[0])) {
-      return output.ids[0];
-    }
-
-    return undefined;
+    return output.ids[0];
   } catch (error) {
-    const err = error as Error;
-    core.warning(
-      `An error occured while getting BuildBatchesForProject '${codebuildProjectName}'.\n Consider adding 'codebuild:ListBuildsForProject' permission for that project. ${err.message}`,
+    reportCodeBuildError(
+      'ListBuildsForProject',
+      'codebuild:ListBuildsForProject',
+      codebuildProjectName,
+      error,
     );
-
     return undefined;
   }
+};
+
+/*
+ * Returns the subset of the given build IDs that are IN_PROGRESS, using as few BatchGetBuilds calls as possible.
+ */
+export const getInProgressBuildIds = async (
+  buildIds: string[],
+): Promise<Set<string>> => {
+  const inProgress = new Set<string>();
+  for (const ids of chunk(buildIds, MAX_IDS_PER_BATCH_GET_BUILDS)) {
+    try {
+      const output = await CLIENT.send(new BatchGetBuildsCommand({ ids }));
+      (output.builds ?? [])
+        .filter((build) => build.buildStatus === StatusType.IN_PROGRESS)
+        .forEach((build) => build.id && inProgress.add(build.id));
+    } catch (error) {
+      reportCodeBuildError(
+        'BatchGetBuilds',
+        'codebuild:BatchGetBuilds',
+        ids.join(', '),
+        error,
+      );
+    }
+  }
+  return inProgress;
 };
 
 export const forwardLogEventsFromCodebuild = async ([
@@ -142,15 +178,17 @@ export const forwardLogEventsFromCodebuild = async ([
           `**** Build ${buildId} finished. Back to tracking pipeline status ****`,
         );
       } else {
-        core.warning(
-          `CodeBuild Project ${projectName} ${buildId} is not ready!`,
+        core.info(
+          `CodeBuild Project ${projectName} ${buildId} has no logs yet. Waiting.`,
         );
       }
     }
   } catch (error) {
-    const err = error as Error;
-    core.warning(
-      `Could not get build with id '${buildId}', consider adding the codebuild:BatchGetBuilds permission. ${err.message}.`,
+    reportCodeBuildError(
+      'BatchGetBuilds',
+      'codebuild:BatchGetBuilds',
+      buildId,
+      error,
     );
   }
 };
@@ -163,17 +201,28 @@ export const isProjectToBuildBatchId = (
 ): x is ProjectToBuildBatchId => !!x[1];
 
 /*
- * Get the BuildBatchIds of the passed CodeBuild Projects.
+ * Get the in-progress build IDs of the passed CodeBuild Projects.
+ * Lists the latest build of each project (a few projects at a time), then checks all candidates
+ * with batched BatchGetBuilds calls instead of one call per project.
  */
 export const getInProgressProjectToBatchIds = async (
   codebuildProjects: string[],
 ): Promise<ProjectToBuildBatchId[]> => {
-  const projectsToBuildBatches: (string | undefined)[][] = await Promise.all(
-    codebuildProjects.map(async (codebuildProject) => [
+  const latestBuilds: (string | undefined)[][] = await mapWithConcurrency(
+    codebuildProjects,
+    MAX_CONCURRENT_LIST_CALLS,
+    async (codebuildProject) => [
       codebuildProject,
-      await getInProgressBuildId(codebuildProject),
-    ]),
+      await getLatestBuildId(codebuildProject),
+    ],
   );
+  const candidates = latestBuilds.filter(isProjectToBuildBatchId);
+  if (candidates.length === 0) {
+    return [];
+  }
 
-  return projectsToBuildBatches.filter(isProjectToBuildBatchId);
+  const inProgress = await getInProgressBuildIds(
+    candidates.map(([, buildId]) => buildId),
+  );
+  return candidates.filter(([, buildId]) => inProgress.has(buildId));
 };
