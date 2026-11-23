@@ -8,10 +8,6 @@ export const sleep = (s: number) =>
 
 type AwsError = { name?: string; message?: string };
 
-/*
- * True if the AWS API rejected the call because of rate limiting ("Rate exceeded").
- * Throttling is not a permission problem and should not be reported as one.
- */
 export const isThrottlingError = (error: unknown): boolean => {
   const { name = '', message = '' } = (error ?? {}) as AwsError;
   return (
@@ -21,9 +17,6 @@ export const isThrottlingError = (error: unknown): boolean => {
   );
 };
 
-/*
- * True if the AWS API rejected the call because the caller lacks a permission.
- */
 export const isAccessDeniedError = (error: unknown): boolean => {
   const { name = '', message = '' } = (error ?? {}) as AwsError;
   return (
@@ -57,9 +50,6 @@ export const mapWithConcurrency = async <T, R>(
   return results;
 };
 
-/*
- * Split an array into chunks of at most `size` elements.
- */
 export const chunk = <T>(items: T[], size: number): T[][] => {
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
